@@ -1,6 +1,7 @@
+let singletoneRequire = require('../../lib/SingletonRequirer.js')(runtime, this)
 let AesUtil = require('../lib/AesUtil.js')
 let Base64 = require('../lib/Base64.js')
-let FileUtils = require('../lib/FileUtils.js')(runtime, this)
+let FileUtils = singletoneRequire('FileUtils')
 let CryptoJS = require('../lib/crypto-js.js')
 var key = device.getAndroidId()  //秘钥必须为：8/16/32位
 var message = "123456";

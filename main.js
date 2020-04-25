@@ -5,10 +5,11 @@
  * @Description: 
  */
 let { config } = require('./config.js')(runtime, this)
-let runningQueueDispatcher = require('./lib/RunningQueueDispatcher.js')(runtime, this)
-let { logInfo, errorInfo } = require('./lib/LogUtils.js')(runtime, this)
-let FloatyInstance = require('./lib/FloatyUtil.js')(runtime, this)
-let commonFunctions = require('./lib/CommonFunction.js')(runtime, this)
+let singletoneRequire = require('./lib/SingletonRequirer.js')(runtime, this)
+let runningQueueDispatcher = singletoneRequire('RunningQueueDispatcher')
+let { logInfo, errorInfo } = singletoneRequire('LogUtils')
+let FloatyInstance =  singletoneRequire('FloatyUtil')
+let commonFunctions = singletoneRequire('CommonFunction')
 let unlocker = require('./lib/Unlock.js')
 let { tryRequestScreenCapture } = require('./lib/TryRequestScreenCapture.js')
 // 不管其他脚本是否在运行 清除任务队列 适合只使用蚂蚁森林的用户
@@ -80,6 +81,7 @@ if (!FloatyInstance.init()) {
 /************************
  * 主程序
  ***********************/
+commonFunctions.showDialogAndWait(true)
 if (config.develop_mode) {
   // antForestRunner.exec()
 } else {
@@ -88,11 +90,11 @@ if (config.develop_mode) {
   } catch (e) {
     commonFunctions.setUpAutoStart(1)
     errorInfo('执行异常, 1分钟后重新开始' + e)
-  } finally {
-    if (config.auto_lock === true && unlocker.needRelock() === true) {
-      debugInfo('重新锁定屏幕')
-      automator.lockScreen()
-    }
-    runningQueueDispatcher.removeRunningTask(true)
   }
 }
+
+if (config.auto_lock === true && unlocker.needRelock() === true) {
+  debugInfo('重新锁定屏幕')
+  automator.lockScreen()
+}
+runningQueueDispatcher.removeRunningTask(true)

@@ -1,11 +1,5 @@
-/*
- * @Author: TonyJiangWJ
- * @Date: 2020-04-25 13:39:19
- * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-04-25 15:28:55
- * @Description: 
- */
-let runningQueueDispatcher = require('../lib/RunningQueueDispatcher.js')(runtime, this)
+let singletoneRequire = require('../lib/SingletonRequirer.js')(runtime, this)
+let runningQueueDispatcher = singletoneRequire('RunningQueueDispatcher')(runtime, this)
 
 runningQueueDispatcher.showDispatchStatus()
 runningQueueDispatcher.addRunningTask()

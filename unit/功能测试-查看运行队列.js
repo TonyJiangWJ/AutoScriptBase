@@ -1,4 +1,5 @@
-let runningQueueDispatcher = require('../lib/RunningQueueDispatcher.js')(runtime, this)
+let singletoneRequire = require('../lib/SingletonRequirer.js')(runtime, this)
+let runningQueueDispatcher = singletoneRequire('RunningQueueDispatcher')(runtime, this)
 
 runningQueueDispatcher.showDispatchStatus()
 

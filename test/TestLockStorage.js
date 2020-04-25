@@ -5,12 +5,14 @@
  * @Last Modified time: 2020-04-25 15:28:23
  * @Description: 
  */
-let lockableStorages = require('../lib/LockableStorage.js')(runtime, this)
-let runningQueueDispatcher = require('../lib/RunningQueueDispatcher.js')(runtime, this)
+
+let singletoneRequire = require('../lib/SingletonRequirer.js')(runtime, this)
+let lockableStorages = singletoneRequire('LockableStorage')
+let runningQueueDispatcher = singletoneRequire('RunningQueueDispatcher')
 
 let storge = lockableStorages.create('test_storage')
 log(storge.put('yes', 'yesyes'))
 log(storge.get('yes'))
 runningQueueDispatcher.addRunningTask()
 runningQueueDispatcher.removeRunningTask()
-log('调用次数：' + lockableStorages.requireCount)
+log('调用次数：' + singletoneRequire('LockableStorage', true))
