@@ -6,7 +6,7 @@
  */
 let { config } = require('./config.js')(runtime, this)
 let runningQueueDispatcher = require('./lib/RunningQueueDispatcher.js')(runtime, this)
-let LogUtils = require('./lib/LogUtils.js')(runtime, this)
+let { logInfo, errorInfo } = require('./lib/LogUtils.js')(runtime, this)
 let FloatyInstance = require('./lib/FloatyUtil.js')(runtime, this)
 let commonFunctions = require('./lib/CommonFunction.js')(runtime, this)
 let unlocker = require('./lib/Unlock.js')
@@ -89,8 +89,10 @@ if (config.develop_mode) {
     commonFunctions.setUpAutoStart(1)
     errorInfo('执行异常, 1分钟后重新开始' + e)
   } finally {
+    if (config.auto_lock === true && unlocker.needRelock() === true) {
+      debugInfo('重新锁定屏幕')
+      automator.lockScreen()
+    }
     runningQueueDispatcher.removeRunningTask(true)
-    // 30秒后关闭，防止立即停止
-    setTimeout(() => { exit() }, 1000 * 30)
   }
 }
