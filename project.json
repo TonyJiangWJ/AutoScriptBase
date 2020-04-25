@@ -1,0 +1,10 @@
+{
+    "name": "autoscript",
+    "main": "main.js",
+    "ignore": [
+        "build"
+    ],
+    "packageName": "com.autoscript",
+    "versionName": "1.0.0",
+    "versionCode": 1
+}
