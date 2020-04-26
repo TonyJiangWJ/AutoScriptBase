@@ -27,3 +27,54 @@
 - [蚂蚁庄园脚本传送门](https://github.com/TonyJiangWJ/Ant-Manor)
 - [京东签到脚本传送门](https://github.com/TonyJiangWJ/JingDongBeans)
 - [支付宝会员积分签到脚本传送门](https://github.com/TonyJiangWJ/JingDongBeans)
+
+## 开发说明
+
+- 1. 下载本仓库
+- 2. 修改config.js中的 `CONFIG_STORAGE_NAME` 和 `PROJECT_NAME`
+
+  ```javascript
+    // 不同项目需要设置不同的storageName，不然会导致配置信息混乱
+    const CONFIG_STORAGE_NAME = 'autoscript_version'
+    const PROJECT_NAME = 'AutoJS 脚手架'
+  ```
+
+- 3. 开发一个主业务逻辑代码，替换 `main.js` 中的 `mainLoop()` 方法
+  比如创建 `core/MainRunner.js` 内容参考如下
+
+  ```javascript
+    function MainRunner() {
+
+      this.exec = function () {
+        // 执行主要业务逻辑
+      }
+    }
+    module.exports = new MainRunner()
+  ```
+
+  再在 `main.js` 中调用:
+
+  ```javascript
+    let mainRunner = require('./core/MainRunner.js')
+
+    //....main.js 中的共有代码可以酌情修改 或者直接不动也可以
+
+    // 开发模式不包裹异常捕捉，方便查看错误信息
+    if (config.develop_mode) {
+      mainRunner.exec()
+    } else {
+      try {
+        mainRunner.exec()
+      } catch (e) {
+        commonFunctions.setUpAutoStart(1)
+        errorInfo('执行异常, 1分钟后重新开始' + e)
+      }
+    }
+
+    //....
+
+  ```
+
+## lib下的js说明
+
+- 待补充
