@@ -2,15 +2,13 @@
  * @Author: TonyJiangWJ
  * @Date: 2019-12-09 20:42:08
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-04-25 15:35:25
+ * @Last Modified time: 2020-04-26 17:54:47
  * @Description: 
  */
-"ui";
-let inRunningMode = false
+'ui';
+
 let currentEngine = engines.myEngine().getSource() + ''
-if (currentEngine.endsWith('/config.js')) {
-  inRunningMode = true
-}
+let isRunningMode = currentEngine.endsWith('/config.js') && typeof module === 'undefined'
 
 importClass(android.text.TextWatcher)
 importClass(android.view.View)
@@ -44,13 +42,16 @@ let default_config = {
   useCustomScrollDown: true,
   // 排行榜列表下滑速度 200毫秒 不要太低否则滑动不生效 仅仅针对useCustomScrollDown=true的情况
   scrollDownSpeed: 200,
+  bottomHeight: 200,
   
   // 延迟启动时延 5秒 悬浮窗中进行的倒计时时间
   delayStartTime: 5,
   device_width: device.width,
   device_height: device.height
 }
+// 不同项目需要设置不同的storageName，不然会导致配置信息混乱
 const CONFIG_STORAGE_NAME = 'autoscript_version'
+const PROJECT_NAME = 'AutoJS 脚手架'
 let config = {}
 let storageConfig = storages.create(CONFIG_STORAGE_NAME)
 Object.keys(default_config).forEach(key => {
@@ -61,11 +62,9 @@ Object.keys(default_config).forEach(key => {
     config[key] = default_config[key]
   }
 })
-if (typeof config.collectable_energy_ball_content !== 'string') {
-  config.collectable_energy_ball_content = default_config.collectable_energy_ball_content
-}
 
-if (!inRunningMode) {
+
+if (!isRunningMode) {
   if (config.device_height <= 10 || config.device_width <= 10) {
     toastLog('请先运行config.js并输入设备宽高')
     exit()
@@ -75,7 +74,8 @@ if (!inRunningMode) {
       scope.config_instance = {
         config: config,
         default_config: default_config,
-        storage_name: CONFIG_STORAGE_NAME
+        storage_name: CONFIG_STORAGE_NAME,
+        project_name: PROJECT_NAME
       }
     }
     return scope.config_instance
@@ -97,6 +97,7 @@ if (!inRunningMode) {
     ui.scrollDownContainer.setVisibility(config.useCustomScrollDown ? View.VISIBLE : View.INVISIBLE)
     ui.bottomHeightContainer.setVisibility(config.useCustomScrollDown ? View.VISIBLE : View.GONE)
     ui.scrollDownSpeedInpt.text(config.scrollDownSpeed + '')
+    ui.bottomHeightInpt.text(config.bottomHeight)
 
   }
 
@@ -553,7 +554,17 @@ if (!inRunningMode) {
     ui.developModeChkBox.on('click', () => {
       config.develop_mode = ui.developModeChkBox.isChecked()
     })
-    
+
+    ui.useCustomScrollDownChkBox.on('click', () => {
+      config.useCustomScrollDown = ui.useCustomScrollDownChkBox.isChecked()
+      ui.scrollDownContainer.setVisibility(config.useCustomScrollDown ? View.VISIBLE : View.INVISIBLE)
+      ui.bottomHeightContainer.setVisibility(config.useCustomScrollDown ? View.VISIBLE : View.GONE)
+    })
+
+    ui.bottomHeightInpt.addTextChangedListener(
+      TextWatcherBuilder(text => { config.bottomHeight = parseInt(text) })
+    )
+
     ui.delayStartTimeInpt.addTextChangedListener(
       TextWatcherBuilder(text => { config.delayStartTime = parseInt(text) })
     )

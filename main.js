@@ -1,17 +1,17 @@
 /*
  * @Author: TonyJiangWJ
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-04-25 16:22:58
+ * @Last Modified time: 2020-04-26 19:30:30
  * @Description: 
  */
 let { config } = require('./config.js')(runtime, this)
 let singletoneRequire = require('./lib/SingletonRequirer.js')(runtime, this)
 let runningQueueDispatcher = singletoneRequire('RunningQueueDispatcher')
-let { logInfo, errorInfo } = singletoneRequire('LogUtils')
-let FloatyInstance =  singletoneRequire('FloatyUtil')
+let { logInfo, errorInfo, warnInfo, debugInfo, infoLog } = singletoneRequire('LogUtils')
+let FloatyInstance = singletoneRequire('FloatyUtil')
 let commonFunctions = singletoneRequire('CommonFunction')
+let tryRequestScreenCapture = singletoneRequire('TryRequestScreenCapture')
 let unlocker = require('./lib/Unlock.js')
-let { tryRequestScreenCapture } = require('./lib/TryRequestScreenCapture.js')
 // 不管其他脚本是否在运行 清除任务队列 适合只使用蚂蚁森林的用户
 if (config.single_script) {
   logInfo('======单脚本运行直接清空任务队列=======')
@@ -82,11 +82,25 @@ if (!FloatyInstance.init()) {
  * 主程序
  ***********************/
 commonFunctions.showDialogAndWait(true)
+commonFunctions.listenDelayStart()
+
+// 演示功能，主流程自行封装
+function mainLoop () {
+  for (let left = 5; left > 0; left--) {
+    FloatyInstance.setFloatyInfo({ x: 100, y: config.device_height / 2 }, 'Hello, this will dismiss in ' + left + ' second', { textSize: 20 - left })
+    FloatyInstance.setFloatyTextColor(colors.toString(Math.random() * 0xFFFFFF & 0xFFFFFF))
+    sleep(1000)
+  }
+  FloatyInstance.setFloatyInfo({ x: config.device_width / 2, y: config.device_height / 2 }, 'GoodBye')
+  FloatyInstance.setFloatyTextColor(colors.toString(Math.random() * 0xFFFFFFFF & 0xFFFFFFFF))
+  sleep(3000)
+}
+// 开发模式不包裹异常捕捉，方便查看错误信息
 if (config.develop_mode) {
-  // antForestRunner.exec()
+  mainLoop()
 } else {
   try {
-    // antForestRunner.exec()
+    mainLoop()
   } catch (e) {
     commonFunctions.setUpAutoStart(1)
     errorInfo('执行异常, 1分钟后重新开始' + e)
@@ -97,4 +111,10 @@ if (config.auto_lock === true && unlocker.needRelock() === true) {
   debugInfo('重新锁定屏幕')
   automator.lockScreen()
 }
+// 清理资源
+events.removeAllListeners()
+events.recycle()
+// 关闭悬浮窗
+FloatyInstance.close()
 runningQueueDispatcher.removeRunningTask(true)
+exit()
