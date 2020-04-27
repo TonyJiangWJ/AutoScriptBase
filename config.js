@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2019-12-09 20:42:08
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-04-26 17:54:47
+ * @Last Modified time: 2020-04-27 18:55:44
  * @Description: 
  */
 'ui';
@@ -18,7 +18,6 @@ importClass(java.util.concurrent.ThreadPoolExecutor)
 importClass(java.util.concurrent.TimeUnit)
 
 let default_config = {
-  develop_mode: false,
   password: '',
   is_alipay_locked: false,
   alipay_lock_password: '',
@@ -27,6 +26,8 @@ let default_config = {
   timeout_existing: 8000,
   capture_waiting_time: 500,
   show_debug_log: true,
+  show_engine_id: false,
+  develop_mode: false,
   auto_lock: false,
   lock_x: 150,
   lock_y: 970,
@@ -50,8 +51,8 @@ let default_config = {
   device_height: device.height
 }
 // 不同项目需要设置不同的storageName，不然会导致配置信息混乱
-const CONFIG_STORAGE_NAME = 'autoscript_version'
-const PROJECT_NAME = 'AutoJS 脚手架'
+let CONFIG_STORAGE_NAME = 'autoscript_version'
+let PROJECT_NAME = 'AutoJS 脚手架'
 let config = {}
 let storageConfig = storages.create(CONFIG_STORAGE_NAME)
 Object.keys(default_config).forEach(key => {
@@ -84,11 +85,11 @@ if (!isRunningMode) {
 
   let loadingDialog = null
 
-  const _hasRootPermission = files.exists("/sbin/su") || files.exists("/system/xbin/su") || files.exists("/system/bin/su")
+  let _hasRootPermission = files.exists("/sbin/su") || files.exists("/system/xbin/su") || files.exists("/system/bin/su")
   
   let AesUtil = require('./lib/AesUtil.js')
   
-  const setScrollDownUiVal = function () {
+  let setScrollDownUiVal = function () {
 
     ui.delayStartTimeInpt.text(config.delayStartTime + '')
 
@@ -97,12 +98,12 @@ if (!isRunningMode) {
     ui.scrollDownContainer.setVisibility(config.useCustomScrollDown ? View.VISIBLE : View.INVISIBLE)
     ui.bottomHeightContainer.setVisibility(config.useCustomScrollDown ? View.VISIBLE : View.GONE)
     ui.scrollDownSpeedInpt.text(config.scrollDownSpeed + '')
-    ui.bottomHeightInpt.text(config.bottomHeight)
+    ui.bottomHeightInpt.text(config.bottomHeight + '')
 
   }
 
 
-  const inputDeviceSize = function () {
+  let inputDeviceSize = function () {
     return Promise.resolve().then(() => {
       return dialogs.rawInput('请输入设备宽度：', config.device_width + '')
     }).then(x => {
@@ -128,23 +129,11 @@ if (!isRunningMode) {
     })
   }
 
-  const setDeviceSizeText = function () {
+  let setDeviceSizeText = function () {
     ui.deviceSizeText.text(config.device_width + 'px ' + config.device_height + 'px')
   }
 
-  const setColorSeekBar = function () {
-    let rgbColor = colors.parseColor(config.min_floaty_color)
-    let rgbColors = {
-      red: colors.red(rgbColor),
-      green: colors.green(rgbColor),
-      blue: colors.blue(rgbColor),
-    }
-    ui.redSeekbar.setProgress(parseInt(rgbColors.red / 255 * 100))
-    ui.greenSeekbar.setProgress(parseInt(rgbColors.green / 255 * 100))
-    ui.blueSeekbar.setProgress(parseInt(rgbColors.blue / 255 * 100))
-  }
-
-  const resetUiValues = function () {
+  let resetUiValues = function () {
     config.device_width = config.device_width > 0 ? config.device_width : 1
     config.device_height = config.device_height > 0 ? config.device_height : 1
     
@@ -157,6 +146,8 @@ if (!isRunningMode) {
 
     ui.showDebugLogChkBox.setChecked(config.show_debug_log)
     ui.saveLogFileChkBox.setChecked(config.saveLogFile)
+    ui.showEngineIdChkBox.setChecked(config.show_engine_id)
+    ui.developModeChkBox.setChecked(config.develop_mode)
     ui.fileSizeInpt.text(config.back_size + '')
     ui.fileSizeContainer.setVisibility(config.saveLogFile ? View.VISIBLE : View.INVISIBLE)
 
@@ -178,8 +169,6 @@ if (!isRunningMode) {
 
     // 进阶配置
     ui.singleScriptChkBox.setChecked(config.single_script)
-    
-    ui.developModeChkBox.setChecked(config.develop_mode)
     setScrollDownUiVal()
     
     setDeviceSizeText()
@@ -198,7 +187,7 @@ if (!isRunningMode) {
     }, 3000)
   })
 
-  const TextWatcherBuilder = function (textCallback) {
+  let TextWatcherBuilder = function (textCallback) {
     return new TextWatcher({
       onTextChanged: (text) => {
         textCallback(text + '')
@@ -248,6 +237,8 @@ if (!isRunningMode) {
                   </horizontal>
                   {/* 是否显示debug日志 */}
                   <checkbox id="showDebugLogChkBox" text="是否显示debug日志" />
+                  <checkbox id="showEngineIdChkBox" text="是否在控制台中显示脚本引擎id" />
+                  <checkbox id="developModeChkBox" text="是否启用开发模式" />
                   <horizontal gravity="center">
                     <checkbox id="saveLogFileChkBox" text="是否保存日志到文件" />
                     <horizontal padding="10 0" id="fileSizeContainer" gravity="center" layout_weight="75">
@@ -323,7 +314,6 @@ if (!isRunningMode) {
                     <input layout_weight="70" inputType="number" id="bottomHeightInpt" />
                   </horizontal>
                   <horizontal w="*" h="1sp" bg="#cccccc" margin="5 0"></horizontal>
-                  <checkbox id="developModeChkBox" text="开发模式" />
                 </vertical>
               </ScrollView>
             </frame>
@@ -369,7 +359,7 @@ if (!isRunningMode) {
             if (ok) {
               try {
                 if (files.exists(local_config_path)) {
-                  const refillConfigs = function (configStr) {
+                  let refillConfigs = function (configStr) {
                     let local_config = JSON.parse(configStr)
                     Object.keys(default_config).forEach(key => {
                       let defaultValue = local_config[key]
@@ -447,6 +437,14 @@ if (!isRunningMode) {
 
     ui.showDebugLogChkBox.on('click', () => {
       config.show_debug_log = ui.showDebugLogChkBox.isChecked()
+    })
+
+    ui.showEngineIdChkBox.on('click', () => {
+      config.show_engine_id = ui.showEngineIdChkBox.isChecked()
+    })
+
+    ui.developModeChkBox.on('click', () => {
+      config.develop_mode = ui.developModeChkBox.isChecked()
     })
 
     ui.saveLogFileChkBox.on('click', () => {
@@ -550,10 +548,6 @@ if (!isRunningMode) {
     ui.scrollDownSpeedInpt.addTextChangedListener(
       TextWatcherBuilder(text => { config.scrollDownSpeed = parseInt(text) })
     )
-
-    ui.developModeChkBox.on('click', () => {
-      config.develop_mode = ui.developModeChkBox.isChecked()
-    })
 
     ui.useCustomScrollDownChkBox.on('click', () => {
       config.useCustomScrollDown = ui.useCustomScrollDownChkBox.isChecked()

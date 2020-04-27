@@ -35,8 +35,8 @@
 
   ```javascript
     // 不同项目需要设置不同的storageName，不然会导致配置信息混乱
-    const CONFIG_STORAGE_NAME = 'autoscript_version'
-    const PROJECT_NAME = 'AutoJS 脚手架'
+    let CONFIG_STORAGE_NAME = 'autoscript_version'
+    let PROJECT_NAME = 'AutoJS 脚手架'
   ```
 
 - 3. 开发一个主业务逻辑代码，替换 `main.js` 中的 `mainLoop()` 方法
