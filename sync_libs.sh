@@ -2,7 +2,7 @@
  # @Author: TonyJiangWJ
  # @Date: 2020-04-27 09:15:51
  # @Last Modified by: TonyJiangWJ
- # @Last Modified time: 2020-04-27 15:09:10
+ # @Last Modified time: 2020-04-27 23:57:32
  # @Description: 
  ###
 #!/bin/bash
@@ -42,6 +42,10 @@ target_files=(
   "lib/prototype/LockableStorage.js"
   "lib/prototype/LogUtils.js"
   "lib/prototype/TryRequestScreenCapture.js"
+  "lib/prototype/Automator.js"
+  "extends/LockScreen-demo.js"
+  "extends/LockScreen.js"
+  "test/TestLockScreen.js"
 )
 # 定义target_files下标，mac下的bash无法使用dict 暂时这么写
 running_queue_dispatcher=0

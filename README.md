@@ -12,6 +12,7 @@
   - 支持自动判断Root和无障碍的自动化执行操作 `Automator`
   - 封装了一个文本悬浮窗工具 `FloatyUtil`
   - 支持自动解锁设备，也支持扩展自定义解锁
+  - 支持模拟手势自动锁定屏幕，同时支持扩展自定义锁屏代码
   - 支持支付宝手势解锁
   - 支持通过代码添加定时任务 `Timers` 来自作者 [SuperMonster003](https://github.com/SuperMonster003)
   - 支持自动点击授权截图权限 `TryRequestScreenCapture` 来自作者 [SuperMonster003](https://github.com/SuperMonster003)
