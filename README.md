@@ -1,4 +1,3 @@
-
 # 简介
 
 - 本项目是用于快速构建AutoJS自动化脚本项目的模板框架
@@ -20,6 +19,7 @@
   - 支持通过ADB授权之后自动开启无障碍功能
   - 封装了常用方法 `CommonFunction` 如保存运行时数据，倒计时延迟等等
   - `lib/autojs-tools.dex` 中封装了更新用的一些Java方法，用于优化脚本执行性能，源码见[auto-js-tools](https://github.com/TonyJiangWJ/auto-js-tools)
+  - 执行 `unit/获取当前页面的布局信息.js` 可以查看当前页面中的控件文本以及id信息 方便开发脚本
 - 具体使用详见各个js文件中的说明信息
 
 ## 目前基于此项目实现的脚本
