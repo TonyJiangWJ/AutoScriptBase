@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2020-04-29 14:44:49
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-04-29 21:50:33
+ * @Last Modified time: 2020-04-29 22:22:20
  * @Description: 
  */
 let singletonRequire = require('../lib/SingletonRequirer.js')(runtime, this)
@@ -117,17 +117,20 @@ function UiObjectInfo (uiObject, depth) {
 
   this.toString = function () {
     return commonFunctions.formatString(
-      '{}{}{}',
+      // ---- id:[] [text/desc]content:[] bounds:[]
+      '{}{}{}{}',
       new Array(this.depth).join('-'),
-      this.isEmpty(this.id) ? '' : ' id:[' + this.id + ']',
+      this.isEmpty(this.id) ? '' : 'id:[' + this.id + ']',
       this.isEmpty(this.content) ? '' :
         commonFunctions.formatString(
-          ' [{}]content: [{}] bounds:[{}, {}, {}, {}]',
-          (this.isDesc ? 'desc' : 'text'), this.content,
-          this.boundsInfo.left, this.boundsInfo.top,
-          this.boundsInfo.width(), this.boundsInfo.height()
-        )
-
+          '[{}]content:[{}]',
+          (this.isDesc ? 'desc' : 'text'), this.content
+        ),
+      this.hasUsableInfo() ? commonFunctions.formatString(
+        'bounds:[{}, {}, {}, {}]',
+        this.boundsInfo.left, this.boundsInfo.top,
+        this.boundsInfo.width(), this.boundsInfo.height()
+      ) : ''
     )
   }
 
@@ -189,6 +192,5 @@ function removeMinPrefix (list) {
     }
     return l
   }).map(l => l.substring(minQueue.peek()))
-  console.log(JSON.stringify(minQueue))
   return result
 }
