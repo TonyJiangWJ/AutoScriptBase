@@ -1,7 +1,7 @@
-let singletoneRequire = require('../../lib/SingletonRequirer.js')(runtime, this)
-let runningQueueDispatcher = singletoneRequire('RunningQueueDispatcher')
-let commonFunctions = singletoneRequire('CommonFunction')
-let { logInfo } = singletoneRequire('LogUtils')
+let singletonRequire = require('../../lib/SingletonRequirer.js')(runtime, this)
+let runningQueueDispatcher = singletonRequire('RunningQueueDispatcher')
+let commonFunctions = singletonRequire('CommonFunction')
+let { logInfo } = singletonRequire('LogUtils')
 
 runningQueueDispatcher.addRunningTask()
 runningQueueDispatcher.showDispatchStatus()

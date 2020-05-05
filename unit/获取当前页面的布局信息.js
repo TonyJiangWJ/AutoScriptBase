@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2020-04-29 14:44:49
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-04-29 22:22:20
+ * @Last Modified time: 2020-04-30 13:44:56
  * @Description: 
  */
 let singletonRequire = require('../lib/SingletonRequirer.js')(runtime, this)

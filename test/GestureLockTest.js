@@ -8,8 +8,8 @@
 let config = {
   alipay_lock_password: ''
 }
-let singletoneRequire = require('../lib/SingletonRequirer.js')(runtime, this)
-let alipayUnlocker = singletoneRequire('AlipayUnlocker')
+let singletonRequire = require('../lib/SingletonRequirer.js')(runtime, this)
+let alipayUnlocker = singletonRequire('AlipayUnlocker')
 
 alipayUnlocker.drawGestureByPassword({
   left: 270,

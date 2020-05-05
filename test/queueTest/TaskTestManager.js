@@ -1,6 +1,6 @@
-let singletoneRequire = require('../../lib/SingletonRequirer.js')(runtime, this)
-let runningQueueDispatcher = singletoneRequire('RunningQueueDispatcher')
-let { clearLogFile } = singletoneRequire('LogUtils')
+let singletonRequire = require('../../lib/SingletonRequirer.js')(runtime, this)
+let runningQueueDispatcher = singletonRequire('RunningQueueDispatcher')
+let { clearLogFile } = singletonRequire('LogUtils')
 
 clearLogFile('verbose')
 let pwd = files.cwd()

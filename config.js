@@ -10,12 +10,6 @@
 let currentEngine = engines.myEngine().getSource() + ''
 let isRunningMode = currentEngine.endsWith('/config.js') && typeof module === 'undefined'
 
-importClass(android.text.TextWatcher)
-importClass(android.view.View)
-importClass(android.view.MotionEvent)
-importClass(java.util.concurrent.LinkedBlockingQueue)
-importClass(java.util.concurrent.ThreadPoolExecutor)
-importClass(java.util.concurrent.TimeUnit)
 
 let default_config = {
   password: '',
@@ -83,6 +77,14 @@ if (!isRunningMode) {
   }
 } else {
 
+
+  importClass(android.text.TextWatcher)
+  importClass(android.widget.AdapterView)
+  importClass(android.view.View)
+  importClass(android.view.MotionEvent)
+  importClass(java.util.concurrent.LinkedBlockingQueue)
+  importClass(java.util.concurrent.ThreadPoolExecutor)
+  importClass(java.util.concurrent.TimeUnit)
   let loadingDialog = null
 
   let _hasRootPermission = files.exists("/sbin/su") || files.exists("/system/xbin/su") || files.exists("/system/bin/su")
@@ -195,6 +197,15 @@ if (!isRunningMode) {
       beforeTextChanged: function (s) { }
       ,
       afterTextChanged: function (s) { }
+    })
+  }
+
+  let SpinnerItemSelectedListenerBuilder = function (selectedCallback) {
+    return new AdapterView.OnItemSelectedListener({
+      onItemSelected: function (parentView, selectedItemView, position, id) {
+        selectedCallback(position)
+      },
+      onNothingSelected: function (parentView) {}
     })
   }
 
