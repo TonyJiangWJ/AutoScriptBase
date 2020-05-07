@@ -84,25 +84,22 @@ let downloadingExecutor = function (backup) {
   let copy_result = files.copy(targetOutputDir + '/resources/for_update/autojs-tools.dex', targetOutputDir + '/lib/autojs-tools.dex')
   toastLog('复制新的dex文件' + (copy_result ? '成功' : '失败'))
   log('清理过时lib文件')
-  downloadDialog.setContent('清理过期文件...')
-  let outdateFiles = require(targetOutputDir + '/resources/for_update/OutdateFiles.js')
-  outdateFiles && outdateFiles.length > 0 && outdateFiles.forEach(fileName => {
-    let fullPath = targetOutputDir + '/' + fileName
-    if (files.exists(fullPath)) {
-      let deleteResult = false
-      if (files.isDir(fullPath) && !files.isEmptyDir(fullPath)) {
-        deleteResult = files.removeDir(fullPath)
-      } else {
-        deleteResult = files.remove(fullPath)
+  let outdateFilePath = targetOutputDir + '/resources/for_update/OutdateFiles.js'
+  if (files.exists(outdateFilePath)) {
+    downloadDialog.setContent('清理过期文件...')
+    let outdateFiles = require(outdateFilePath)
+    outdateFiles && outdateFiles.length > 0 && outdateFiles.forEach(fileName => {
+      let fullPath = targetOutputDir + '/' + fileName
+      if (files.exists(fullPath)) {
+        let deleteResult = false
+        if (files.isDir(fullPath) && !files.isEmptyDir(fullPath)) {
+          deleteResult = files.removeDir(fullPath)
+        } else {
+          deleteResult = files.remove(fullPath)
+        }
+        console.verbose('删除过期文件：' + fullPath + ' ' + (deleteResult ? '成功' : '失败'))
       }
-      console.verbose('删除过期文件：' + fullPath + ' ' + (deleteResult ? '成功' : '失败'))
-    }
-  })
-  let extendMultiTouchPath = targetOutputDir + '/extends/MuiltiTouchCollect.js'
-  if (files.exists(extendMultiTouchPath)) {
-    let newName = targetOutputDir + '/extends/MultiTouchCollect.js'
-    log('重命名已存在的扩展：' + extendMultiTouchPath)
-    files.move(extendMultiTouchPath, newName)
+    })
   }
   downloadDialog.setContent('更新完成')
   sleep(2000)
