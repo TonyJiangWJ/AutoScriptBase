@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2019-12-09 20:42:08
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-04-27 18:55:44
+ * @Last Modified time: 2020-05-07 19:58:41
  * @Description: 
  */
 'ui';
@@ -25,6 +25,8 @@ let default_config = {
   auto_lock: false,
   lock_x: 150,
   lock_y: 970,
+  // 锁屏启动关闭提示框
+  dismissDialogIfLocked: true,
   request_capture_permission: true,
   // 是否保存日志文件，如果设置为保存，则日志文件会按时间分片备份在logback/文件夹下
   saveLogFile: true,
@@ -61,8 +63,10 @@ Object.keys(default_config).forEach(key => {
 
 if (!isRunningMode) {
   if (config.device_height <= 10 || config.device_width <= 10) {
-    toastLog('请先运行config.js并输入设备宽高')
-    exit()
+    if (!currentEngine.endsWith('/config.js')) {
+      toastLog('请先运行config.js并输入设备宽高')
+      exit()
+    }
   }
   module.exports = function (__runtime__, scope) {
     if (typeof scope.config_instance === 'undefined') {
@@ -163,6 +167,7 @@ if (!isRunningMode) {
     ui.lockPositionContainer.setVisibility(config.auto_lock && !_hasRootPermission ? View.VISIBLE : View.INVISIBLE)
     ui.lockDescNoRoot.setVisibility(!_hasRootPermission ? View.VISIBLE : View.INVISIBLE)
 
+    ui.dismissDialogIfLockedChkBox.setChecked(config.dismissDialogIfLocked)
 
     ui.timeoutUnlockInpt.text(config.timeout_unlock + '')
     ui.timeoutFindOneInpt.text(config.timeout_findOne + '')
@@ -282,6 +287,9 @@ if (!isRunningMode) {
                       <button id="showLockPointConfig" >手动输入坐标</button>
                     </vertical>
                   </horizontal>
+                  {/* 是否锁屏启动关闭弹框提示 */}
+                  <checkbox id="dismissDialogIfLockedChkBox" text="锁屏启动关闭弹框提示" />
+
                   {/* 基本不需要修改的 */}
                   <horizontal w="*" h="1sp" bg="#cccccc" margin="5 0"></horizontal>
                   <horizontal gravity="center">
@@ -465,6 +473,10 @@ if (!isRunningMode) {
 
     ui.requestCapturePermissionChkBox.on('click', () => {
       config.request_capture_permission = ui.requestCapturePermissionChkBox.isChecked()
+    })
+
+    ui.dismissDialogIfLockedChkBox.on('click', () => {
+      config.dismissDialogIfLocked = ui.dismissDialogIfLockedChkBox.isChecked()
     })
 
     ui.autoLockChkBox.on('click', () => {

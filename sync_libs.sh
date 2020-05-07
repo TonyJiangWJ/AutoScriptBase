@@ -2,7 +2,7 @@
  # @Author: TonyJiangWJ
  # @Date: 2020-04-27 09:15:51
  # @Last Modified by: TonyJiangWJ
- # @Last Modified time: 2020-04-29 22:10:23
+ # @Last Modified time: 2020-05-07 11:16:36
  # @Description: 
  ###
 #!/bin/bash
@@ -49,6 +49,10 @@ target_files=(
   "unit/获取当前页面的布局信息.js"
   "resources/for_update/autojs-tools.dex"
   "lib/autojs-tools.dex"
+  "lib/color-region-center.dex"
+  "lib/SingletonRequirer.js"
+  "lib/DateUtil.js"
+  "lib/Unlock.js"
 )
 # 定义target_files下标，mac下的bash无法使用dict 暂时这么写
 running_queue_dispatcher=0
