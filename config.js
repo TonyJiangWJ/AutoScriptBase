@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2019-12-09 20:42:08
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-05-07 19:58:41
+ * @Last Modified time: 2020-05-11 21:55:40
  * @Description: 
  */
 'ui';
@@ -26,7 +26,7 @@ let default_config = {
   lock_x: 150,
   lock_y: 970,
   // 锁屏启动关闭提示框
-  dismissDialogIfLocked: true,
+  dismiss_dialog_if_locked: true,
   request_capture_permission: true,
   // 是否保存日志文件，如果设置为保存，则日志文件会按时间分片备份在logback/文件夹下
   saveLogFile: true,
@@ -167,7 +167,7 @@ if (!isRunningMode) {
     ui.lockPositionContainer.setVisibility(config.auto_lock && !_hasRootPermission ? View.VISIBLE : View.INVISIBLE)
     ui.lockDescNoRoot.setVisibility(!_hasRootPermission ? View.VISIBLE : View.INVISIBLE)
 
-    ui.dismissDialogIfLockedChkBox.setChecked(config.dismissDialogIfLocked)
+    ui.dismissDialogIfLockedChkBox.setChecked(config.dismiss_dialog_if_locked)
 
     ui.timeoutUnlockInpt.text(config.timeout_unlock + '')
     ui.timeoutFindOneInpt.text(config.timeout_findOne + '')
@@ -476,7 +476,7 @@ if (!isRunningMode) {
     })
 
     ui.dismissDialogIfLockedChkBox.on('click', () => {
-      config.dismissDialogIfLocked = ui.dismissDialogIfLockedChkBox.isChecked()
+      config.dismiss_dialog_if_locked = ui.dismissDialogIfLockedChkBox.isChecked()
     })
 
     ui.autoLockChkBox.on('click', () => {

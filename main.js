@@ -11,7 +11,10 @@ let { logInfo, errorInfo, warnInfo, debugInfo, infoLog, debugForDev, clearLogFil
 let FloatyInstance = singletonRequire('FloatyUtil')
 let commonFunctions = singletonRequire('CommonFunction')
 let tryRequestScreenCapture = singletonRequire('TryRequestScreenCapture')
+let callStateListener = singletonRequire('CallStateListener')
+let resourceMonitor = require('./lib/ResourceMonitor.js')(runtime, this)
 let unlocker = require('./lib/Unlock.js')
+callStateListener.exitIfNotIdle()
 // 不管其他脚本是否在运行 清除任务队列 适合只使用蚂蚁森林的用户
 if (config.single_script) {
   logInfo('======单脚本运行直接清空任务队列=======')
@@ -54,6 +57,7 @@ try {
   unlocker.exec()
 } catch (e) {
   errorInfo('解锁发生异常, 三分钟后重新开始' + e)
+  commonFunctions.printExceptionStack(e)
   commonFunctions.setUpAutoStart(3)
   runningQueueDispatcher.removeRunningTask()
   exit()
@@ -112,6 +116,7 @@ if (config.develop_mode) {
   } catch (e) {
     commonFunctions.setUpAutoStart(1)
     errorInfo('执行异常, 1分钟后重新开始' + e)
+    commonFunctions.printExceptionStack(e)
   }
 }
 
