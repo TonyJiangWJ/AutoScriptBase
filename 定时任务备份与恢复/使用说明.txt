@@ -1,0 +1,8 @@
+本脚本用于在不同的AutoJS软件之间备份和恢复定时任务
+执行 备份所有的定时任务.js 会在当前文件夹下创建 tasks.json 保存当前AutoJS下的 定时任务（TimedTask）和意图任务（IntentTask）
+切换到需要重载的AutoJS下，执行 重载备份的定时任务.js 会读取当前文件夹下的tasks.js备份信息，并设置到当前的AutoJS软件下。
+默认情况下重载会移除当前已经添加的定时任务，如果不想要自动移除 请将removeExists设为false。
+使用场景：
+  想要将免费版的AutoJS下的定时任务复制到Pro版。
+  1, 先打开免费版AutoJS，运行 备份所有的定时任务.js 此时会在文件夹下生成 tasks.json
+  2, 打开AutoJS Pro，运行 重载备份的定时任务.js 此时会将 tasks.json 中的备份信息加载进来
