@@ -1,3 +1,10 @@
+/*
+ * @Author: TonyJiangWJ
+ * @Date: 2020-04-26 16:19:37
+ * @Last Modified by: TonyJiangWJ
+ * @Last Modified time: 2020-09-15 22:16:20
+ * @Description: 
+ */
 let { config: _config } = require('../config.js')(runtime, this)
 module.exports = function (obj) {
   this.__proto__ = obj
@@ -14,8 +21,8 @@ module.exports = function (obj) {
       }
       sleep(100)
     }
-    // 解锁完毕后返回check_lock方法，模块自动判断是否成功
-    return this.check_lock()
+    // 解锁完毕后返回check_unlock方法，模块自动判断是否成功
+    return this.check_unlock()
   }
 
 
@@ -24,9 +31,9 @@ module.exports = function (obj) {
    * 但是如果机型特殊，可以直接重写run_unlock()方法
    * 在run_unlock中编写自己的解锁方式
    */
-  this.run_unlock = function () {
-    // 在这个里面编写解锁逻辑
-  }
+  // this.run_unlock = function () {
+  //   // 在这个里面编写解锁逻辑
+  // }
 
   /**
    * 又或者只有某一个小方法不适用，可以只修改对应的方法即可

@@ -22,6 +22,21 @@ if (config.single_script) {
 }
 logInfo('======加入任务队列，并关闭重复运行的脚本=======')
 runningQueueDispatcher.addRunningTask()
+// 注册自动移除运行中任务
+commonFunctions.registerOnEngineRemoved(function () {
+  // 移除运行中任务
+  runningQueueDispatcher.removeRunningTask(true, true,
+    () => {
+      // 保存是否需要重新锁屏
+      unlocker.saveNeedRelock()
+      events.removeAllListeners()
+      events.recycle()
+      debugInfo('校验并移除已加载的dex')
+      resolver()
+      console.clear()
+    }
+  )
+})
 /***********************
  * 初始化
  ***********************/
