@@ -1,19 +1,22 @@
 /*
  * @Author: TonyJiangWJ
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-05-07 10:43:15
+ * @Last Modified time: 2020-09-17 20:09:14
  * @Description: 
  */
 let { config } = require('./config.js')(runtime, this)
+const resolver = require('./lib/AutoJSRemoveDexResolver.js')
+config.isRunning = true
 let singletonRequire = require('./lib/SingletonRequirer.js')(runtime, this)
 let runningQueueDispatcher = singletonRequire('RunningQueueDispatcher')
-let { logInfo, errorInfo, warnInfo, debugInfo, infoLog, debugForDev, clearLogFile } = singletonRequire('LogUtils')
+let { logInfo, errorInfo, warnInfo, debugInfo, infoLog, debugForDev, flushAllLogs } = singletonRequire('LogUtils')
 let FloatyInstance = singletonRequire('FloatyUtil')
 let commonFunctions = singletonRequire('CommonFunction')
 let tryRequestScreenCapture = singletonRequire('TryRequestScreenCapture')
 let callStateListener = singletonRequire('CallStateListener')
 let resourceMonitor = require('./lib/ResourceMonitor.js')(runtime, this)
 let unlocker = require('./lib/Unlock.js')
+let mainExecutor = require('./core/MainExecutor.js')
 callStateListener.exitIfNotIdle()
 // 不管其他脚本是否在运行 清除任务队列 适合只使用蚂蚁森林的用户
 if (config.single_script) {
@@ -27,12 +30,15 @@ commonFunctions.registerOnEngineRemoved(function () {
   // 移除运行中任务
   runningQueueDispatcher.removeRunningTask(true, true,
     () => {
+      config.isRunning = false
       // 保存是否需要重新锁屏
       unlocker.saveNeedRelock()
       events.removeAllListeners()
       events.recycle()
       debugInfo('校验并移除已加载的dex')
       resolver()
+      flushAllLogs()
+      config.isRunning = false
       console.clear()
     }
   )
@@ -105,29 +111,20 @@ if (!FloatyInstance.init()) {
   runningQueueDispatcher.executeTargetScript(FileUtils.getRealMainScriptPath())
   exit()
 }
+// 自动设置刘海偏移量
+commonFunctions.autoSetUpBangOffset()
 /************************
  * 主程序
  ***********************/
 commonFunctions.showDialogAndWait(true)
 commonFunctions.listenDelayStart()
 
-// 演示功能，主流程自行封装
-function mainLoop () {
-  for (let left = 5; left > 0; left--) {
-    FloatyInstance.setFloatyInfo({ x: 100, y: config.device_height / 2 }, 'Hello, this will dismiss in ' + left + ' second', { textSize: 20 - left })
-    FloatyInstance.setFloatyTextColor(colors.toString(Math.random() * 0xFFFFFF & 0xFFFFFF))
-    sleep(1000)
-  }
-  FloatyInstance.setFloatyInfo({ x: config.device_width / 2, y: config.device_height / 2 }, 'GoodBye')
-  FloatyInstance.setFloatyTextColor(colors.toString(Math.random() * 0xFFFFFFFF & 0xFFFFFFFF))
-  sleep(3000)
-}
 // 开发模式不包裹异常捕捉，方便查看错误信息
 if (config.develop_mode) {
-  mainLoop()
+  mainExecutor.exec()
 } else {
   try {
-    mainLoop()
+    mainExecutor.exec()
   } catch (e) {
     commonFunctions.setUpAutoStart(1)
     errorInfo('执行异常, 1分钟后重新开始' + e)
@@ -144,5 +141,7 @@ events.removeAllListeners()
 events.recycle()
 // 关闭悬浮窗
 FloatyInstance.close()
+flushAllLogs()
+config.isRunning = false
 runningQueueDispatcher.removeRunningTask(true)
 exit()

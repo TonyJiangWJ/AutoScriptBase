@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2019-12-09 20:42:08
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-05-11 21:55:40
+ * @Last Modified time: 2020-09-17 20:05:38
  * @Description: 
  */
 'ui';
@@ -47,7 +47,9 @@ let default_config = {
   device_width: device.width,
   device_height: device.height,
   // 是否是AutoJS Pro  需要屏蔽部分功能，暂时无法实现：生命周期监听等 包括通话监听
-  is_pro: is_pro
+  is_pro: is_pro,
+  auto_set_bang_offset: true,
+  bang_offset: 0
 }
 // 不同项目需要设置不同的storageName，不然会导致配置信息混乱
 let CONFIG_STORAGE_NAME = 'autoscript_version'
@@ -249,7 +251,12 @@ if (!isRunningMode) {
                     <button id="changeDeviceSizeBtn" >修改</button>
                   </horizontal>
                   <horizontal w="*" h="1sp" bg="#cccccc" margin="5 5"></horizontal>
-                  
+                  <text text="刘海屏或者挖孔屏悬浮窗显示位置和实际目测位置不同，需要施加一个偏移量一般是负值，脚本运行时会自动设置：" textSize="12sp" margin="10 5"/>
+                  <horizontal padding="10 10" gravity="center">
+                    <text text="当前自动设置的刘海偏移量为：" textSize="12sp" layout_weight="60" />
+                    <text id="bangOffsetText" textSize="12sp" layout_weight="40" />
+                  </horizontal>
+                  <horizontal w="*" h="1sp" bg="#cccccc" margin="5 5"></horizontal>
                   {/* 脚本延迟启动 */}
                   <horizontal gravity="center">
                     <text text="延迟启动时间（秒）:" />
