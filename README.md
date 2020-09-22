@@ -80,6 +80,7 @@
 
 - 在线取色工具：[图片base64取色](https://tonyjiangwj.gitee.io/statics/pic_base64.html)
 - 在线多点取色路径生成: [多点取色辅助工具](https://tonyjiangwj.gitee.io/statics/multi_color_assist.html)
+- 解锁功能扩展辅助：`unit/获取锁屏界面控件信息.js`
 
 ## lib下的js说明
 

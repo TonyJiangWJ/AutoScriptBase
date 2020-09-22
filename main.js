@@ -1,12 +1,12 @@
 /*
  * @Author: TonyJiangWJ
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-09-17 20:09:14
+ * @Last Modified time: 2020-09-22 21:22:34
  * @Description: 
  */
+require('./modules/init_if_needed.js')(runtime, this)
 let { config } = require('./config.js')(runtime, this)
 const resolver = require('./lib/AutoJSRemoveDexResolver.js')
-config.isRunning = true
 let singletonRequire = require('./lib/SingletonRequirer.js')(runtime, this)
 let runningQueueDispatcher = singletonRequire('RunningQueueDispatcher')
 let { logInfo, errorInfo, warnInfo, debugInfo, infoLog, debugForDev, flushAllLogs } = singletonRequire('LogUtils')
@@ -30,7 +30,6 @@ commonFunctions.registerOnEngineRemoved(function () {
   // 移除运行中任务
   runningQueueDispatcher.removeRunningTask(true, true,
     () => {
-      config.isRunning = false
       // 保存是否需要重新锁屏
       unlocker.saveNeedRelock()
       events.removeAllListeners()
@@ -142,6 +141,5 @@ events.recycle()
 // 关闭悬浮窗
 FloatyInstance.close()
 flushAllLogs()
-config.isRunning = false
 runningQueueDispatcher.removeRunningTask(true)
 exit()

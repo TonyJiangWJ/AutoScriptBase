@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2019-12-09 20:42:08
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-09-17 20:05:38
+ * @Last Modified time: 2020-09-22 21:22:27
  * @Description: 
  */
 'ui';
@@ -30,9 +30,11 @@ let default_config = {
   dismiss_dialog_if_locked: true,
   request_capture_permission: true,
   // 是否保存日志文件，如果设置为保存，则日志文件会按时间分片备份在logback/文件夹下
-  saveLogFile: true,
+  save_log_file: true,
+  async_save_log_file: true,
   back_size: '100',
-
+  // 通话状态监听
+  enable_call_state_control: false,
   // 单脚本模式 是否只运行一个脚本 不会同时使用其他的 开启单脚本模式 会取消任务队列的功能。
   // 比如同时使用蚂蚁庄园 则保持默认 false 否则设置为true 无视其他运行中的脚本
   single_script: false,
@@ -156,14 +158,15 @@ if (!isRunningMode) {
 
 
     ui.showDebugLogChkBox.setChecked(config.show_debug_log)
-    ui.saveLogFileChkBox.setChecked(config.saveLogFile)
-    ui.showEngineIdChkBox.setChecked(config.show_engine_id)
-    ui.developModeChkBox.setChecked(config.develop_mode)
+    ui.saveLogFileChkBox.setChecked(config.save_log_file)
+    ui.asyncSaveLogFileChkBox.setChecked(config.async_save_log_file)
     ui.fileSizeInpt.text(config.back_size + '')
-    ui.fileSizeContainer.setVisibility(config.saveLogFile ? View.VISIBLE : View.INVISIBLE)
-
+    ui.fileSizeContainer.setVisibility(config.save_log_file ? View.VISIBLE : View.GONE)
+    ui.asyncSaveLogFileChkBox.setVisibility(config.save_log_file ? View.VISIBLE : View.GONE)
+    ui.showEngineIdChkBox.setChecked(config.show_engine_id)
+    ui.developModeChkBox.setChecked(config.develop_mode)    
     ui.requestCapturePermissionChkBox.setChecked(config.request_capture_permission)
-
+    
     ui.lockX.text(config.lock_x + '')
     ui.lockXSeekBar.setProgress(parseInt(config.lock_x / config.device_width * 100))
     ui.lockY.text(config.lock_y + '')
@@ -171,8 +174,9 @@ if (!isRunningMode) {
     ui.autoLockChkBox.setChecked(config.auto_lock)
     ui.lockPositionContainer.setVisibility(config.auto_lock && !_hasRootPermission ? View.VISIBLE : View.INVISIBLE)
     ui.lockDescNoRoot.setVisibility(!_hasRootPermission ? View.VISIBLE : View.INVISIBLE)
-
+    
     ui.dismissDialogIfLockedChkBox.setChecked(config.dismiss_dialog_if_locked)
+    ui.enableCallStateControlChkBox.setChecked(config.enable_call_state_control)
 
     ui.timeoutUnlockInpt.text(config.timeout_unlock + '')
     ui.timeoutFindOneInpt.text(config.timeout_findOne + '')
@@ -266,13 +270,12 @@ if (!isRunningMode) {
                   <checkbox id="showDebugLogChkBox" text="是否显示debug日志" />
                   <checkbox id="showEngineIdChkBox" text="是否在控制台中显示脚本引擎id" />
                   <checkbox id="developModeChkBox" text="是否启用开发模式" />
-                  <horizontal gravity="center">
-                    <checkbox id="saveLogFileChkBox" text="是否保存日志到文件" />
-                    <horizontal padding="10 0" id="fileSizeContainer" gravity="center" layout_weight="75">
-                      <text text="文件滚动大小：" layout_weight="20" />
-                      <input id="fileSizeInpt" textSize="14sp" layout_weight="80" />
-                      <text text="kb" />
-                    </horizontal>
+                  <checkbox id="saveLogFileChkBox" text="是否保存日志到文件" />
+                  <checkbox id="asyncSaveLogFileChkBox" text="异步保存日志到文件" />
+                  <horizontal padding="10 0" id="fileSizeContainer" gravity="center" layout_weight="75">
+                    <text text="文件滚动大小：" layout_weight="20" />
+                    <input id="fileSizeInpt" textSize="14sp" layout_weight="80" />
+                    <text text="kb" />
                   </horizontal>
                   {/* 是否自动点击授权录屏权限 */}
                   <checkbox id="requestCapturePermissionChkBox" text="是否需要自动授权截图权限" />
@@ -300,7 +303,8 @@ if (!isRunningMode) {
                   </horizontal>
                   {/* 是否锁屏启动关闭弹框提示 */}
                   <checkbox id="dismissDialogIfLockedChkBox" text="锁屏启动关闭弹框提示" />
-
+                  <text text="通话状态监听需要授予AutoJS软件获取通话状态的权限" textSize="12sp" />
+                  <checkbox id="enableCallStateControlChkBox" text="是否在通话时停止脚本" />
                   {/* 基本不需要修改的 */}
                   <horizontal w="*" h="1sp" bg="#cccccc" margin="5 0"></horizontal>
                   <horizontal gravity="center">
@@ -480,8 +484,13 @@ if (!isRunningMode) {
     })
 
     ui.saveLogFileChkBox.on('click', () => {
-      config.saveLogFile = ui.saveLogFileChkBox.isChecked()
-      ui.fileSizeContainer.setVisibility(config.saveLogFile ? View.VISIBLE : View.INVISIBLE)
+      config.save_log_file = ui.saveLogFileChkBox.isChecked()
+      ui.fileSizeContainer.setVisibility(config.save_log_file ? View.VISIBLE : View.GONE)
+      ui.asyncSaveLogFileChkBox.setVisibility(config.save_log_file ? View.VISIBLE : View.GONE)
+    })
+
+    ui.asyncSaveLogFileChkBox.on('click', () => {
+      config.async_save_log_file = ui.asyncSaveLogFileChkBox.isChecked()
     })
 
     ui.requestCapturePermissionChkBox.on('click', () => {
@@ -492,6 +501,9 @@ if (!isRunningMode) {
       config.dismiss_dialog_if_locked = ui.dismissDialogIfLockedChkBox.isChecked()
     })
 
+    ui.enableCallStateControlChkBox.on('click', () => {
+      config.enable_call_state_control = ui.enableCallStateControlChkBox.isChecked()
+    })
 
     ui.asyncWaitingCaptureChkBox.on('click', () => {
       config.async_waiting_capture = ui.asyncWaitingCaptureChkBox.isChecked()
