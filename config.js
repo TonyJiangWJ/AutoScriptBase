@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2019-12-09 20:42:08
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-09-22 21:22:27
+ * @Last Modified time: 2020-09-23 13:40:11
  * @Description: 
  */
 'ui';
@@ -93,9 +93,6 @@ if (!isRunningMode) {
   importClass(android.widget.AdapterView)
   importClass(android.view.View)
   importClass(android.view.MotionEvent)
-  importClass(java.util.concurrent.LinkedBlockingQueue)
-  importClass(java.util.concurrent.ThreadPoolExecutor)
-  importClass(java.util.concurrent.TimeUnit)
   let loadingDialog = null
 
   let _hasRootPermission = files.exists("/sbin/su") || files.exists("/system/xbin/su") || files.exists("/system/bin/su")
