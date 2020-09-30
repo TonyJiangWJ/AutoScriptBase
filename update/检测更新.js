@@ -5,7 +5,8 @@
  * @Last Modified time: 2020-09-22 10:53:52
  * @Description: 
  */
-
+let resolver = require('../lib/AutoJSRemoveDexResolver.js')
+resolver()
 runtime.loadDex('../lib/download.dex')
 let FileUtils = require('../lib/prototype/FileUtils.js')
 let loadingDialog = null
@@ -24,7 +25,7 @@ importClass(com.tony.listener.DownloaderListener)
 importClass(com.tony.resolver.JSONResolver)
 importClass(com.tony.downloader.GithubReleaseDownloader)
 importClass(com.tony.downloader.GiteeReleaseDownloader)
-
+resolver()
 let chose = dialogs.singleChoice('请选择更新源', ['Github Release(推荐)', 'Gitee Release(备用)'], 0)
 
 let apiUrl = null

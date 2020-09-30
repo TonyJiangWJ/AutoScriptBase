@@ -134,10 +134,8 @@ if (config.develop_mode) {
 if (config.auto_lock === true && unlocker.needRelock() === true) {
   debugInfo('重新锁定屏幕')
   automator.lockScreen()
+  unlocker.saveNeedRelock(true)
 }
-// 清理资源
-events.removeAllListeners()
-events.recycle()
 // 关闭悬浮窗
 FloatyInstance.close()
 flushAllLogs()

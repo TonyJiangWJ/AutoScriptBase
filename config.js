@@ -51,7 +51,8 @@ let default_config = {
   // 是否是AutoJS Pro  需要屏蔽部分功能，暂时无法实现：生命周期监听等 包括通话监听
   is_pro: is_pro,
   auto_set_bang_offset: true,
-  bang_offset: 0
+  bang_offset: 0,
+  thread_name_prefix: 'autoscript_'
 }
 // 不同项目需要设置不同的storageName，不然会导致配置信息混乱
 let CONFIG_STORAGE_NAME = 'autoscript_version'
