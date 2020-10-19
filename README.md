@@ -19,7 +19,12 @@
   - 支持通过代码添加定时任务 `Timers` 来自作者 [SuperMonster003](https://github.com/SuperMonster003)
   - 支持自动点击授权截图权限 `TryRequestScreenCapture` 来自作者 [SuperMonster003](https://github.com/SuperMonster003)
   - 支持配置信息导入和导出以及配置信息加密
-  - 支持通过ADB授权之后自动开启无障碍功能
+  - 支持通过ADB授权之后自动开启无障碍功能，具体如何使用ADB请自行Google或Baidu。不同的软件请自行替换包名: Pro版为 `org.autojs.autojspro` 可以通过 `context.getPackageName()` 获取
+
+  ```shell
+  adb shell pm grant org.autojs.autojs android.permission.WRITE_SECURE_SETTINGS
+  ```
+
   - 封装了常用方法 `CommonFunction` 如保存运行时数据，倒计时延迟等等
   - `lib/autojs-tools.dex` 中封装了更新用的一些Java方法，用于优化脚本执行性能，源码见[auto-js-tools](https://github.com/TonyJiangWJ/auto-js-tools)
   - 执行 `unit/获取当前页面的布局信息.js` 可以查看当前页面中的控件文本以及id信息 方便开发脚本
@@ -78,6 +83,11 @@
     //....
 
   ```
+
+- 4. 将修改完成后的代码带文件夹全部放到手机根目录`/脚本/`下 如 `/脚本/AutoScriptBase/`
+- 5. 打开AutoJS软件，下拉刷新就能看到`AutoScriptBase`，点击进入然后运行 `main.js` 即可
+  - 5.1 脚本执行依赖于无障碍服务，请在自动弹出界面中打开AutoJS的无障碍权限，或者直接通过ADB赋权让脚本自动获取无障碍权限
+  - 5.2 另外其他需要的应用权限有 `后台弹出界面` `显示悬浮窗` `修改系统配置（可选）` 等
 
 ## 开发辅助
 
