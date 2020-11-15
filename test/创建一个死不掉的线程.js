@@ -9,12 +9,13 @@ new java.lang.Thread(new java.lang.Runnable({
   run: function () {
     // 一小时后停止
     let targetStop = new Date().getTime() + 3600000
-    while (new Date().getTime() < targetStop)
-    try {
-      console.verbose('我是不死的小强')
-      sleep(1000)
-    } catch (e) {
-      console.error('线程执行异常' + e)
+    while (new Date().getTime() < targetStop) {
+      try {
+        console.verbose('我是不死的小强')
+        sleep(1000)
+      } catch (e) {
+        console.error('线程执行异常' + e)
+      }
     }
   }
 })).start()

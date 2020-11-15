@@ -97,4 +97,4 @@
 
 ## lib下的js说明
 
-- 待补充
+- [WIKI_FOR_LIBS](./resources/doc/WIKI_FOR_LIBS.md)
