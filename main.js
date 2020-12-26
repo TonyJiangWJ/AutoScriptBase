@@ -1,7 +1,7 @@
 /*
  * @Author: TonyJiangWJ
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-09-22 21:22:34
+ * @Last Modified time: 2020-12-26 11:28:51
  * @Description: 
  */
 require('./modules/init_if_needed.js')(runtime, this)
@@ -12,8 +12,7 @@ let runningQueueDispatcher = singletonRequire('RunningQueueDispatcher')
 let { logInfo, errorInfo, warnInfo, debugInfo, infoLog, debugForDev, flushAllLogs } = singletonRequire('LogUtils')
 let FloatyInstance = singletonRequire('FloatyUtil')
 let commonFunctions = singletonRequire('CommonFunction')
-let tryRequestScreenCapture = singletonRequire('TryRequestScreenCapture')
-let callStateListener = singletonRequire('CallStateListener')
+let callStateListener = !config.is_pro && config.enable_call_state_control ? singletonRequire('CallStateListener') : { exitIfNotIdle: () => { } }
 let resourceMonitor = require('./lib/ResourceMonitor.js')(runtime, this)
 let unlocker = require('./lib/Unlock.js')
 let mainExecutor = require('./core/MainExecutor.js')
@@ -32,6 +31,7 @@ commonFunctions.registerOnEngineRemoved(function () {
     () => {
       // 保存是否需要重新锁屏
       unlocker.saveNeedRelock()
+      unlocker.unlocker.relock && _config.resetBrightness && _config.resetBrightness()
       events.removeAllListeners()
       events.recycle()
       debugInfo('校验并移除已加载的dex')
@@ -41,7 +41,7 @@ commonFunctions.registerOnEngineRemoved(function () {
       console.clear()
     }
   )
-})
+}, 'main')
 /***********************
  * 初始化
  ***********************/
@@ -76,32 +76,19 @@ logInfo('======解锁并校验截图权限======')
 try {
   unlocker.exec()
 } catch (e) {
-  errorInfo('解锁发生异常, 三分钟后重新开始' + e)
-  commonFunctions.printExceptionStack(e)
-  commonFunctions.setUpAutoStart(3)
-  runningQueueDispatcher.removeRunningTask()
-  exit()
+  if (!config.forceStop) {
+    errorInfo('解锁发生异常, 三分钟后重新开始' + e)
+    commonFunctions.printExceptionStack(e)
+    commonFunctions.setUpAutoStart(3)
+    runningQueueDispatcher.removeRunningTask()
+    exit()
+  }
 }
 logInfo('解锁成功')
 
 // 请求截图权限
-let screenPermission = false
-let actionSuccess = commonFunctions.waitFor(function () {
-  if (config.request_capture_permission) {
-    screenPermission = tryRequestScreenCapture()
-  } else {
-    screenPermission = requestScreenCapture(false)
-  }
-}, 15000)
-if (!actionSuccess || !screenPermission) {
-  errorInfo('请求截图失败, 设置6秒后重启')
-  runningQueueDispatcher.removeRunningTask()
-  sleep(6000)
-  runningQueueDispatcher.executeTargetScript(FileUtils.getRealMainScriptPath())
-  exit()
-} else {
-  logInfo('请求截屏权限成功')
-}
+commonFunctions.requestScreenCaptureOrRestart()
+commonFunctions.ensureDeviceSizeValid()
 // 初始化悬浮窗
 if (!FloatyInstance.init()) {
   runningQueueDispatcher.removeRunningTask()
