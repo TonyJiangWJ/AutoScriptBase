@@ -64,19 +64,20 @@
   再在 `main.js` 中调用:
 
   ```javascript
-    let mainRunner = require('./core/MainRunner.js')
+    let mainExecutor = require('./core/MainExecutor.js')
 
     //....main.js 中的共有代码可以酌情修改 或者直接不动也可以
 
     // 开发模式不包裹异常捕捉，方便查看错误信息
     if (config.develop_mode) {
-      mainRunner.exec()
+      mainExecutor.exec()
     } else {
       try {
-        mainRunner.exec()
+        mainExecutor.exec()
       } catch (e) {
         commonFunctions.setUpAutoStart(1)
         errorInfo('执行异常, 1分钟后重新开始' + e)
+        commonFunctions.printExceptionStack(e)
       }
     }
 
@@ -94,6 +95,8 @@
 - 在线取色工具：[图片base64取色](https://tonyjiangwj.gitee.io/statics/pic_base64.html)
 - 在线多点取色路径生成: [多点取色辅助工具](https://tonyjiangwj.gitee.io/statics/multi_color_assist.html)
 - 解锁功能扩展辅助：`unit/获取锁屏界面控件信息.js`
+- 图片实时二值化等 `test/visual_test/可视化测试工具.js` 目前只有一个功能，按运行后的提示来操作就行
+- 可视化配置工具，基于webvie和vue框架实现，H5内容在vue_configs下，新增配置项可以只修改`vue_configs/js/commponets/configuration.js` 和 `config.js` 两个文件，其他作为公用的可以不关注。如果会vue那么可以随你所想进行修改
 
 ## lib下的js说明
 
