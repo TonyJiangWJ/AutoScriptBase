@@ -48,7 +48,7 @@
     let PROJECT_NAME = 'AutoJS 脚手架'
   ```
 
-- 3. 开发一个主业务逻辑代码，替换 `main.js` 中的 `mainLoop()` 方法
+- 3. 开发一个主业务逻辑代码，替换 `MainExecutor.js` 中的 `mainLoop()` 方法
   比如创建 `core/MainRunner.js` 内容参考如下
 
   ```javascript
