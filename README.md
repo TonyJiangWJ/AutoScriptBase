@@ -49,31 +49,20 @@
   ```
 
 - 3. 开发一个主业务逻辑代码，替换 `MainExecutor.js` 中的 `mainLoop()` 方法
-  比如创建 `core/MainRunner.js` 内容参考如下
-
-  ```javascript
-    function MainRunner() {
-
-      this.exec = function () {
-        // 执行主要业务逻辑
-      }
-    }
-    module.exports = new MainRunner()
-  ```
 
   再在 `main.js` 中调用:
 
   ```javascript
-    let mainRunner = require('./core/MainRunner.js')
+    let MainExecutor = require('./core/MainExecutor.js')
 
     //....main.js 中的共有代码可以酌情修改 或者直接不动也可以
 
     // 开发模式不包裹异常捕捉，方便查看错误信息
     if (config.develop_mode) {
-      mainRunner.exec()
+      MainExecutor.exec()
     } else {
       try {
-        mainRunner.exec()
+        MainExecutor.exec()
       } catch (e) {
         commonFunctions.setUpAutoStart(1)
         errorInfo('执行异常, 1分钟后重新开始' + e)
