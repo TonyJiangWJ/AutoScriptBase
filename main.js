@@ -1,7 +1,7 @@
 /*
  * @Author: TonyJiangWJ
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2021-01-09 14:24:42
+ * @Last Modified time: 2021-01-10 14:43:27
  * @Description: 
  */
 require('./modules/init_if_needed.js')(runtime, this)
@@ -13,6 +13,7 @@ let { logInfo, errorInfo, warnInfo, debugInfo, infoLog, debugForDev, flushAllLog
 let FloatyInstance = singletonRequire('FloatyUtil')
 let commonFunctions = singletonRequire('CommonFunction')
 let callStateListener = !config.is_pro && config.enable_call_state_control ? singletonRequire('CallStateListener') : { exitIfNotIdle: () => { } }
+// 用于代理图片资源，请勿移除 否则需要手动添加recycle代码
 let resourceMonitor = require('./lib/ResourceMonitor.js')(runtime, this)
 let unlocker = require('./lib/Unlock.js')
 let mainExecutor = require('./core/MainExecutor.js')
@@ -49,14 +50,10 @@ commonFunctions.registerOnEngineRemoved(function () {
 logInfo('======校验无障碍功能======')
 // 检查手机是否开启无障碍服务
 // 当无障碍经常莫名消失时  可以传递true 强制开启无障碍
-// if (!commonFunctions.checkAccessibilityService(true)) {
-if (!commonFunctions.checkAccessibilityService()) {
-  try {
-    auto.waitFor()
-  } catch (e) {
-    warnInfo('auto.waitFor()不可用')
-    auto()
-  }
+// if (!commonFunctions.ensureAccessibilityEnabled(true)) {
+if (!commonFunctions.ensureAccessibilityEnabled()) {
+  errorInfo('获取无障碍权限失败')
+  exit()
 }
 logInfo('---前置校验完成;启动系统--->>>>')
 // 打印运行环境信息
