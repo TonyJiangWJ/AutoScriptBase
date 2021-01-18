@@ -34,8 +34,7 @@
 
 - [蚂蚁森林脚本传送门](https://github.com/TonyJiangWJ/Ant-Forest)
 - [蚂蚁庄园脚本传送门](https://github.com/TonyJiangWJ/Ant-Manor)
-- [京东签到脚本传送门](https://github.com/TonyJiangWJ/JingDongBeans)
-- [支付宝会员积分签到脚本传送门](https://github.com/TonyJiangWJ/JingDongBeans)
+- [聚合签到脚本传送门](https://github.com/TonyJiangWJ/Unify-Sign)
 
 ## 开发说明
 
