@@ -61,6 +61,10 @@
   resourceMonitor.releaseAll()
 ```
 
+## OpenCvUtil.js
+
+- 封装了几个opencv的方法，用于识别图片的主色调和差异化均值等等
+
 ## SingletonRequirer.js 维护模块单例
 
 - 通过它来以单例方式调用 `lib/prototype` 下的模块，避免脚本执行时产生多个实例
@@ -72,3 +76,8 @@
   // 如果脚本已经实例化过logUtil，那么会直接返回缓存的对象
   let logUtil = singletonRequire('LogUtil')
 ```
+
+## Unlock.js 用于自动解锁
+
+- 内置了通用的几个解锁方式，pin/手势/字符串密码等
+

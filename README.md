@@ -25,6 +25,7 @@
   adb shell pm grant org.autojs.autojs android.permission.WRITE_SECURE_SETTINGS
   ```
 
+  - [ADB的详细使用介绍](./resources/doc/ADB授权脚本自动开启无障碍权限.md)
   - 封装了常用方法 `CommonFunction` 如保存运行时数据，倒计时延迟等等
   - `lib/autojs-tools.dex` 中封装了更新用的一些Java方法，用于优化脚本执行性能，源码见[auto-js-tools](https://github.com/TonyJiangWJ/auto-js-tools)
   - 执行 `unit/获取当前页面的布局信息.js` 可以查看当前页面中的控件文本以及id信息 方便开发脚本
