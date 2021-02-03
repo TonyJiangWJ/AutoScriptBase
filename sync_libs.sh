@@ -31,28 +31,28 @@ sync_file() {
 }
 
 # 目标项目文件夹
-target_dirs=( "../Ant-Forest" "../Ant-Manor" "../Alipay-Credits" "../京东签到" )
+target_dirs=( "../Ant-Forest" "../Ant-Manor" "../Unify-Sign" )
 # 可同步文件 目前除了CommonFunction和WidgetUtil有个性化实现外，其他几个都一样
 target_files=(
-  "lib/prototype/RunningQueueDispatcher.js"
+  # "lib/prototype/RunningQueueDispatcher.js"
   "lib/prototype/FloatyUtil.js"
-  "lib/prototype/Timers.js"
-  "lib/prototype/AlipayUnlocker.js"
-  "lib/prototype/FileUtils.js"
-  "lib/prototype/LockableStorage.js"
-  "lib/prototype/LogUtils.js"
-  "lib/prototype/TryRequestScreenCapture.js"
-  "lib/prototype/Automator.js"
-  "extends/LockScreen-demo.js"
-  "extends/LockScreen.js"
-  "test/TestLockScreen.js"
-  "unit/获取当前页面的布局信息.js"
-  "resources/for_update/autojs-tools.dex"
-  "lib/autojs-tools.dex"
-  "lib/color-region-center.dex"
-  "lib/SingletonRequirer.js"
-  "lib/DateUtil.js"
-  "lib/Unlock.js"
+  # "lib/prototype/Timers.js"
+  # "lib/prototype/AlipayUnlocker.js"
+  # "lib/prototype/FileUtils.js"
+  # "lib/prototype/LockableStorage.js"
+  # "lib/prototype/LogUtils.js"
+  # "lib/prototype/TryRequestScreenCapture.js"
+  # "lib/prototype/Automator.js"
+  # "extends/LockScreen-demo.js"
+  # "extends/LockScreen.js"
+  # "test/TestLockScreen.js"
+  # "unit/获取当前页面的布局信息.js"
+  # "resources/for_update/autojs-tools.dex"
+  # "lib/autojs-tools.dex"
+  # "lib/color-region-center.dex"
+  # "lib/SingletonRequirer.js"
+  # "lib/DateUtil.js"
+  # "lib/Unlock.js"
 )
 # 定义target_files下标，mac下的bash无法使用dict 暂时这么写
 running_queue_dispatcher=0
