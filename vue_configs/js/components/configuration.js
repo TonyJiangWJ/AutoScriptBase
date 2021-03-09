@@ -203,6 +203,8 @@ Vue.component('advance-configs', function (resolve, reject) {
           useCustomScrollDown: true,
           scrollDownSpeed: 200,
           bottomHeight: 200,
+          warn_skipped_ignore_package: false,
+          warn_skipped_too_much: false,
           skip_running_packages: [{ packageName: 'com.tony.test', appName: 'test' }, { packageName: 'com.tony.test2', appName: 'test2' }]
         },
         validations: {
@@ -299,6 +301,8 @@ Vue.component('advance-configs', function (resolve, reject) {
           </template>\
         </van-swipe-cell>\
         </div>\
+        <switch-cell title="当前台白名单跳过次数过多时提醒" label="当白名单跳过3次之后会toast提醒，按音量下可以直接执行" title-style="width: 12em;flex:2;" v-model="configs.warn_skipped_too_much" />\
+        <switch-cell v-if="configs.warn_skipped_too_much" title="是否无视前台包名" title-style="width: 10em;flex:2;" label="默认情况下包名相同且重复多次时才提醒" v-model="configs.warn_skipped_ignore_package" />\
       </van-cell-group>\
       <van-dialog v-model="showAddSkipRunningDialog" show-cancel-button @confirm="doAddSkipPackage" :get-container="getContainer">\
         <template #title>\

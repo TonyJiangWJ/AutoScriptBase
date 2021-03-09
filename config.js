@@ -50,6 +50,8 @@ let default_config = {
   bottomHeight: 200,
   // 当以下包正在前台运行时，延迟执行
   skip_running_packages: [],
+  warn_skipped_ignore_package: false,
+  warn_skipped_too_much: false,
   // 延迟启动时延 5秒 悬浮窗中进行的倒计时时间
   delayStartTime: 5,
   device_width: device.width,
