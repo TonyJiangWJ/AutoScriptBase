@@ -7,7 +7,7 @@
  */
 let currentEngine = engines.myEngine().getSource() + ''
 let isRunningMode = currentEngine.endsWith('/config.js') && typeof module === 'undefined'
-let is_pro = Object.prototype.toString.call(com.stardust.autojs.core.timing.TimedTask.Companion).match(/Java(Class|Object)/)
+let is_pro = !!Object.prototype.toString.call(com.stardust.autojs.core.timing.TimedTask.Companion).match(/Java(Class|Object)/)
 let default_config = {
   password: '',
   timeout_unlock: 1000,
@@ -24,6 +24,8 @@ let default_config = {
   check_device_posture: false,
   check_distance: false,
   posture_threshold_z: 6,
+  // 电量保护，低于该值延迟60分钟执行脚本
+  battery_keep_threshold: 20,
   auto_lock: false,
   lock_x: 150,
   lock_y: 970,
@@ -37,6 +39,8 @@ let default_config = {
   save_log_file: true,
   async_save_log_file: true,
   back_size: '100',
+  // 控制台最大日志长度，仅免费版有用
+  console_log_maximum_size: 1500,
   // 通话状态监听
   enable_call_state_control: false,
   // 单脚本模式 是否只运行一个脚本 不会同时使用其他的 开启单脚本模式 会取消任务队列的功能。
@@ -52,6 +56,9 @@ let default_config = {
   skip_running_packages: [],
   warn_skipped_ignore_package: false,
   warn_skipped_too_much: false,
+  auto_check_update: false,
+  // github release url 用于检测更新状态
+  github_latest_url: '',
   // 延迟启动时延 5秒 悬浮窗中进行的倒计时时间
   delayStartTime: 5,
   device_width: device.width,
