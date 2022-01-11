@@ -6,6 +6,20 @@
  * @Description: 组件代码，传统方式，方便在手机上进行修改
  */
 
+const VALIDATOR = {
+  P_INT: {
+    validate: () => false,
+    message: v => {
+      if (v) {
+        if (isNaN(v) || parseInt(v) <= 0) {
+          return '请输入一个正数'
+        }
+      }
+      return ''
+    }
+  }
+}
+
 let mixin_methods = {
   data: function () {
     return {
@@ -59,6 +73,12 @@ let mixin_common = {
     return {}
   },
   methods: {
+    routerTo: function (path) {
+      this.$router.push(path)
+    },
+    saveConfigs: function () {
+      this.doSaveConfigs()
+    },
     loadConfigs: function () {
       $app.invoke('loadConfigs', {}, config => {
         Object.keys(this.configs).forEach(key => {
@@ -109,6 +129,10 @@ let mixin_common = {
   },
   mounted () {
     this.loadConfigs()
+  },
+  destroyed() {
+    console.log('保存当前界面配置')
+    this.saveConfigs()
   }
 }
 
@@ -161,11 +185,11 @@ Vue.component('color-input-field', (resolve, reject) => {
         return ''
       }
     },
-    template: '<van-field \
-      :label="label" input-align="right" :error-message="colorTextErrorMessage" error-message-align="right" :label-width="labelWidth">\
-      <input slot="input" v-model="innerValue" type="text" :placeholder="placeholder" class="van-field__control van-field__control--right" \
-      :style="innerValue | styleTextColor" />\
-    </van-field>'
+    template: `<van-field
+      :label="label" input-align="right" :error-message="colorTextErrorMessage" error-message-align="right" :label-width="labelWidth">
+      <input slot="input" v-model="innerValue" type="text" :placeholder="placeholder" class="van-field__control van-field__control--right"
+      :style="innerValue | styleTextColor" />
+    </van-field>`
   })
 })
 
@@ -215,38 +239,38 @@ Vue.component('color-slider', function (resolve, reject) {
     mounted () {
       this.resolveDetailInfo()
     },
-    template: '<div style="padding: 1rem 2rem;">\
-      <van-row style="margin: 0.5rem 0">\
-        <van-col><span class="simple-span" :style="colorText | styleTextColor">颜色值: {{colorText}}</span></van-col>\
-      </van-row>\
-      <van-row style="margin: 1.5rem 0 2rem 0">\
-        <van-col :span="24">\
-          <van-slider v-model="R" :min="0" :max="255" :active-color="\'#\' + R.toString(16) + \'0000\'">\
-            <template #button>\
-              <div class="custom-slide-button">R:{{ R }}</div>\
-            </template>\
-          </van-slider>\
-        </van-col>\
-      </van-row>\
-      <van-row style="margin: 2rem 0">\
-        <van-col :span="24">\
-          <van-slider v-model="G" :min="0" :max="255" :active-color="\'#00\' + G.toString(16) + \'00\'">\
-            <template #button>\
-              <div class="custom-slide-button">G:{{ G }}</div>\
-            </template>\
-          </van-slider>\
-        </van-col>\
-      </van-row>\
-      <van-row style="margin: 2rem 0">\
-        <van-col :span="24">\
-          <van-slider v-model="B" :min="0" :max="255" :active-color="\'#0000\' + B.toString(16)">\
-            <template #button>\
-              <div class="custom-slide-button">B:{{ B }}</div>\
-            </template>\
-          </van-slider>\
-        </van-col>\
-      </van-row>\
-    </div>'
+    template: `<div style="padding: 1rem 2rem;">
+      <van-row style="margin: 0.5rem 0">
+        <van-col><span class="simple-span" :style="colorText | styleTextColor">颜色值: {{colorText}}</span></van-col>
+      </van-row>
+      <van-row style="margin: 1.5rem 0 2rem 0">
+        <van-col :span="24">
+          <van-slider v-model="R" :min="0" :max="255" :active-color="'#' + R.toString(16) + '0000'">
+            <template #button>
+              <div class="custom-slide-button">R:{{ R }}</div>
+            </template>
+          </van-slider>
+        </van-col>
+      </van-row>
+      <van-row style="margin: 2rem 0">
+        <van-col :span="24">
+          <van-slider v-model="G" :min="0" :max="255" :active-color="'#00' + G.toString(16) + '00'">
+            <template #button>
+              <div class="custom-slide-button">G:{{ G }}</div>
+            </template>
+          </van-slider>
+        </van-col>
+      </van-row>
+      <van-row style="margin: 2rem 0">
+        <van-col :span="24">
+          <van-slider v-model="B" :min="0" :max="255" :active-color="'#0000' + B.toString(16)">
+            <template #button>
+              <div class="custom-slide-button">B:{{ B }}</div>
+            </template>
+          </van-slider>
+        </van-col>
+      </van-row>
+    </div>`
   })
 })
 
@@ -277,17 +301,17 @@ Vue.component('swipe-color-input-field', function (resolve, reject) {
         this.innerValue = v
       }
     },
-    template: '<div>\
-    <van-swipe-cell stop-propagation>\
-      <color-input-field :error-message="errorMessage" v-model="innerValue" :label="label" :label-width="labelWidth" :placeholder="placeholder" />\
-      <template #right>\
-        <van-button square type="primary" text="滑动输入" @click="showColorSlider=true" />\
-      </template>\
-    </van-swipe-cell>\
-    <van-popup v-model="showColorSlider" position="bottom" :style="{ height: \'30%\' }" :get-container="getContainer">\
-      <color-slider v-model="innerValue"/>\
-    </van-popup>\
-    </div>'
+    template: `<div>
+    <van-swipe-cell stop-propagation>
+      <color-input-field :error-message="errorMessage" v-model="innerValue" :label="label" :label-width="labelWidth" :placeholder="placeholder" />
+      <template #right>
+        <van-button square type="primary" text="滑动输入" @click="showColorSlider=true" />
+      </template>
+    </van-swipe-cell>
+    <van-popup v-model="showColorSlider" position="bottom" :style="{ height: '30%' }" :get-container="getContainer">
+      <color-slider v-model="innerValue"/>
+    </van-popup>
+    </div>`
   })
 })
 
@@ -346,47 +370,47 @@ Vue.component('region-slider', function (resolve, reject) {
     mounted () {
       this.resolveDetailInfo()
     },
-    template: '<div style="padding: 1rem 2rem;">\
-      <van-row style="margin: 0.5rem 0">\
-        <van-col><span class="simple-span">区域数据: {{regionText}}</span></van-col>\
-      </van-row>\
-      <van-row style="margin: 1.5rem 0 2rem 0">\
-        <van-col :span="24">\
-          <van-slider v-model="x" :min="0" :max="device_width || device.width" >\
-            <template #button>\
-              <div class="custom-slide-button">x:{{ x }}</div>\
-            </template>\
-          </van-slider>\
-        </van-col>\
-      </van-row>\
-      <van-row style="margin: 2rem 0">\
-        <van-col :span="24">\
-          <van-slider v-model="y" :min="0" :max="device_height || device.height" >\
-            <template #button>\
-              <div class="custom-slide-button">y:{{ y }}</div>\
-            </template>\
-          </van-slider>\
-        </van-col>\
-      </van-row>\
-      <van-row style="margin: 2rem 0" v-if="!positionOnly">\
-        <van-col :span="24">\
-          <van-slider v-model="width" :min="0" :max="max_width || device_width || device.width" >\
-            <template #button>\
-              <div class="custom-slide-button">w:{{ width }}</div>\
-            </template>\
-          </van-slider>\
-        </van-col>\
-      </van-row>\
-      <van-row style="margin: 2rem 0" v-if="!positionOnly">\
-        <van-col :span="24">\
-          <van-slider v-model="height" :min="0" :max="max_height || device_height || device.height" >\
-            <template #button>\
-              <div class="custom-slide-button">h:{{ height }}</div>\
-            </template>\
-          </van-slider>\
-        </van-col>\
-      </van-row>\
-    </div>'
+    template: `<div style="padding: 1rem 2rem;">
+      <van-row style="margin: 0.5rem 0">
+        <van-col><span class="simple-span">区域数据: {{regionText}}</span></van-col>
+      </van-row>
+      <van-row style="margin: 1.5rem 0 2rem 0">
+        <van-col :span="24">
+          <van-slider v-model="x" :min="0" :max="device_width || device.width" >
+            <template #button>
+              <div class="custom-slide-button">x:{{ x }}</div>
+            </template>
+          </van-slider>
+        </van-col>
+      </van-row>
+      <van-row style="margin: 2rem 0">
+        <van-col :span="24">
+          <van-slider v-model="y" :min="0" :max="device_height || device.height" >
+            <template #button>
+              <div class="custom-slide-button">y:{{ y }}</div>
+            </template>
+          </van-slider>
+        </van-col>
+      </van-row>
+      <van-row style="margin: 2rem 0" v-if="!positionOnly">
+        <van-col :span="24">
+          <van-slider v-model="width" :min="0" :max="max_width || device_width || device.width" >
+            <template #button>
+              <div class="custom-slide-button">w:{{ width }}</div>
+            </template>
+          </van-slider>
+        </van-col>
+      </van-row>
+      <van-row style="margin: 2rem 0" v-if="!positionOnly">
+        <van-col :span="24">
+          <van-slider v-model="height" :min="0" :max="max_height || device_height || device.height" >
+            <template #button>
+              <div class="custom-slide-button">h:{{ height }}</div>
+            </template>
+          </van-slider>
+        </van-col>
+      </van-row>
+    </div>`
   })
 })
 
@@ -432,9 +456,6 @@ Vue.component('region-input-field', function (resolve, reject) {
     },
     watch: {
       innerValue: function (v) {
-        if (this.isNotEmpty(this.positionErrorMessage)) {
-          return
-        }
         if (this.arrayValue && this.isNotEmpty(v)) {
           this.$emit('change', v.split(',').map(v => parseInt(v)))
         } else {
@@ -462,19 +483,19 @@ Vue.component('region-input-field', function (resolve, reject) {
         return ''
       }
     },
-    template: '<div>\
-      <van-swipe-cell stop-propagation>\
-        <van-field :error-message="positionErrorMessage" error-message-align="right" v-model="innerValue" :label="label"\
-         :label-width="labelWidth" type="text" placeholder="请输入校验区域" input-align="right" />\
-        <template #right>\
-          <van-button square type="primary" text="滑动输入" @click="showRegionSlider=true" />\
-        </template>\
-      </van-swipe-cell>\
-      <van-popup v-model="showRegionSlider" position="bottom" :style="{ height: \'30%\' }" :get-container="getContainer">\
-        <region-slider :device_width="deviceWidth" :device_height="deviceHeight"\
-         :max_width="maxWidth" :max_height="maxHeight" v-model="innerValue"/>\
-      </van-popup>\
-    </div>'
+    template: `<div>
+      <van-swipe-cell stop-propagation>
+        <van-field :error-message="positionErrorMessage" error-message-align="right" v-model="innerValue" :label="label"
+         :label-width="labelWidth" type="text" placeholder="请输入校验区域" input-align="right" />
+        <template #right>
+          <van-button square type="primary" text="滑动输入" @click="showRegionSlider=true" style="height: 100%" />
+        </template>
+      </van-swipe-cell>
+      <van-popup v-model="showRegionSlider" position="bottom" :style="{ height: '30%' }" :get-container="getContainer">
+        <region-slider :device_width="deviceWidth" :device_height="deviceHeight"
+         :max_width="maxWidth" :max_height="maxHeight" v-model="innerValue"/>
+      </van-popup>
+    </div>`
   })
 })
 
@@ -554,19 +575,19 @@ Vue.component('position-input-field', (resolve) => {
         return ''
       }
     },
-    template: '<div>\
-      <van-swipe-cell stop-propagation>\
-        <van-field :error-message="positionErrorMessage" error-message-align="right" v-model="innerValue" :label="label"\
-         :label-width="labelWidth" type="text" placeholder="placeholder" input-align="right" />\
-        <template #right>\
-          <van-button square type="primary" text="滑动输入" @click="showRegionSlider=true" />\
-        </template>\
-      </van-swipe-cell>\
-      <van-popup v-model="showRegionSlider" position="bottom" :style="{ height: \'30%\' }" :get-container="getContainer">\
-        <region-slider :device_width="deviceWidth" :device_height="deviceHeight"\
-        :position-only="true" v-model="innerValue"/>\
-      </van-popup>\
-      </div>'
+    template: `<div>
+      <van-swipe-cell stop-propagation>
+        <van-field :error-message="positionErrorMessage" error-message-align="right" v-model="innerValue" :label="label"
+         :label-width="labelWidth" type="text" placeholder="placeholder" input-align="right" />
+        <template #right>
+          <van-button square type="primary" text="滑动输入" @click="showRegionSlider=true" />
+        </template>
+      </van-swipe-cell>
+      <van-popup v-model="showRegionSlider" position="bottom" :style="{ height: '30%' }" :get-container="getContainer">
+        <region-slider :device_width="deviceWidth" :device_height="deviceHeight"
+        :position-only="true" v-model="innerValue"/>
+      </van-popup>
+      </div>`
   })
 })
 
@@ -660,28 +681,28 @@ Vue.component('installed-package-selector', function (resolve, reject) {
         }
       }
     },
-    template: '<div>\
-      <van-row type="flex" justify="center">\
-        <van-col>\
-          新增应用白名单\
-          <van-button style="margin-left: 0.4rem" plain hairline type="primary" size="mini" @click="loadInstalledPackages">从已安装的列表中选择</van-button>\
-        </van-col>\
-      </van-row>\
-      <van-popup v-model="showPackageSelect" position="bottom" :style="{ height: \'75%\' }" :get-container="getContainer">\
-        <van-search v-model="searchString" show-action @search="doSearch" @cancel="cancelSearch" placeholder="请输入搜索关键词" />\
-        <van-row v-if="onLoading || !installedPackages || installedPackages.length === 0" type="flex" justify="center" style="margin-top: 8rem;">\
-          <van-col v-if="onLoading"><van-loading size="3rem" /></van-col>\
-          <template v-else-if="!installedPackages || installedPackages.length === 0">\
-            <van-col :style="{ margin: \'2rem\'}" class="van-cell" v-if="!canReadPackage">无法读取应用列表，请确认是否给与了AutoJS读取应用列表的权限</van-col>\
-            <van-col :style="{ margin: \'2rem\'}" class="van-cell" v-else>已安装应用已经全部加入到白名单中了，你可真行</van-col>\
-          </template>\
-        </van-row>\
-        <van-row v-else-if="filteredPackages.length === 0" type="flex" justify="center" style="margin-top: 8rem;">\
-          <van-col :style="{ margin: \'2rem\'}" class="van-cell">未找到匹配的应用</van-col>\
-        </van-row>\
-        <van-cell v-if="!onLoading" v-for="package in filteredPackages" :key="package.packageName" :title="package.appName" :label="package.packageName" @click="selectPackage(package)"></van-cell>\
-      </van-popup>\
-    </div>'
+    template: `<div>
+      <van-row type="flex" justify="center" style="margin-bottom: 0.5rem">
+        <van-col>
+          新增应用白名单
+          <van-button style="margin-left: 0.4rem" plain hairline type="primary" size="mini" @click="loadInstalledPackages">从已安装的列表中选择</van-button>
+        </van-col>
+      </van-row>
+      <van-popup v-model="showPackageSelect" position="bottom" :style="{ height: '75%' }" :get-container="getContainer">
+        <van-search v-model="searchString" show-action @search="doSearch" @cancel="cancelSearch" placeholder="请输入搜索关键词" />
+        <van-row v-if="onLoading || !installedPackages || installedPackages.length === 0" type="flex" justify="center" style="margin-top: 8rem;">
+          <van-col v-if="onLoading"><van-loading size="3rem" /></van-col>
+          <template v-else-if="!installedPackages || installedPackages.length === 0">
+            <van-col :style="{ margin: '2rem'}" class="van-cell" v-if="!canReadPackage">无法读取应用列表，请确认是否给与了AutoJS读取应用列表的权限</van-col>
+            <van-col :style="{ margin: '2rem'}" class="van-cell" v-else>已安装应用已经全部加入到白名单中了，你可真行</van-col>
+          </template>
+        </van-row>
+        <van-row v-else-if="filteredPackages.length === 0" type="flex" justify="center" style="margin-top: 8rem;">
+          <van-col :style="{ margin: '2rem'}" class="van-cell">未找到匹配的应用</van-col>
+        </van-row>
+        <van-cell v-if="!onLoading" v-for="package in filteredPackages" :key="package.packageName" :title="package.appName" :label="package.packageName" @click="selectPackage(package)"></van-cell>
+      </van-popup>
+    </div>`
   })
 })
 
@@ -730,10 +751,12 @@ Vue.component('number-field', resolve => {
         }
       }
     },
-    template: '<van-field\
-        v-model="innerValue" :label="label" :label-width="labelWidth" type="number" :placeholder="placeholder" input-align="right">\
-        <template #right-icon><slot name="right-icon"></slot></template>\
-      </van-field>'
+    template: `
+      <van-field
+        v-model="innerValue" :label="label" :label-width="labelWidth" type="number" :error-message="errorMessage" error-message-align="right" :placeholder="placeholder" input-align="right">
+        <template #right-icon><slot name="right-icon"></slot></template>
+      </van-field>
+      `
   })
 })
 
@@ -750,11 +773,11 @@ Vue.component('tip-block', resolve => {
         default: '0.7rem'
       }
     },
-    template: '<van-row>\
-      <van-col :span="22" :offset="1">\
-        <span :style="\'color: gray;font-size: \' + tipFontSize"><slot></slot></span>\
-      </van-col>\
-    </van-row>'
+    template: `<van-row>
+      <van-col :span="22" :offset="1">
+        <span :style="'color: gray;font-size: ' + tipFontSize"><slot></slot></span>
+      </van-col>
+    </van-row>`
   })
 })
 
@@ -792,8 +815,109 @@ Vue.component('switch-cell', resolve => {
         this.innerValue = v
       }
     },
-    template: '<van-cell center :title="title" :label="label" :title-style="titleStyle">\
-      <van-switch v-model="innerValue" :size="switchSize" />\
-    </van-cell>'
+    template: `
+    <van-cell center :title="title" :label="label" :title-style="titleStyle">
+      <van-switch v-model="innerValue" :size="switchSize" />
+    </van-cell>
+    `
   })
 })
+/**
+ * Base64ImageViewer
+ * 封装是switch按钮
+ */
+Vue.component('base64-image-viewer', resolve => {
+  resolve({
+    mixins: [mixin_methods],
+    props: {
+      value: String,
+      title: String,
+      titleStyle: String
+    },
+    model: {
+      prop: 'value',
+      event: 'change'
+    },
+    data: function () {
+      return {
+        innerValue: this.value,
+        showBase64Inputer: false,
+      }
+    },
+    computed: {
+      base64Data: function () {
+        if (this.innerValue) {
+          return 'data:image/png;base64,' + this.innerValue
+        }
+        return null
+      }
+    },
+    watch: {
+      innerValue: function (v) {
+        this.$emit('change', v)
+      },
+      value: function (v) {
+        this.innerValue = v
+      }
+    },
+    template: `
+    <div>
+      <van-swipe-cell stop-propagation>
+        <div style="display:flex; height: 3rem;align-items: center; padding-left:1rem;">
+          <label>{{title}}:</label>
+          <img :src="base64Data" style="max-height:2.5rem;"/>
+        </div>
+        <template #right>
+          <van-button square type="primary" text="修改Base64" @click="showBase64Inputer=true" />
+        </template>
+      </van-swipe-cell>
+      <van-popup v-model="showBase64Inputer" position="bottom" :style="{ height: '30%', display: 'flex', alignItems: 'center' }" :get-container="getContainer">
+        <van-field v-model="innerValue" label="图片base64" type="textarea" placeholder="请输入base64" input-align="right" rows="6"/>
+      </van-popup>
+    </div>
+    `
+  })
+})
+
+
+function formatDate (date, fmt) {
+  if (typeof fmt === 'undefined') {
+    fmt = "yyyy-MM-dd HH:mm:ss"
+  }
+
+  var o = {
+    'M+': date.getMonth() + 1, // 月份
+    'd+': date.getDate(), // 日
+    'h+': date.getHours() % 12 === 0 ? 12 : date.getHours() % 12, // 小时
+    'H+': date.getHours(), // 小时
+    'm+': date.getMinutes(), // 分
+    's+': date.getSeconds(), // 秒
+    'q+': Math.floor((date.getMonth() + 3) / 3), // 季度
+    'S': date.getMilliseconds() // 毫秒
+  }
+  var week = {
+    '0': '\u65e5',
+    '1': '\u4e00',
+    '2': '\u4e8c',
+    '3': '\u4e09',
+    '4': '\u56db',
+    '5': '\u4e94',
+    '6': '\u516d'
+  }
+  let execResult
+  if (/(y+)/.test(fmt)) {
+    execResult = /(y+)/.exec(fmt)
+    fmt = fmt.replace(execResult[1], (date.getFullYear() + '').substring(4 - execResult[1].length))
+  }
+  if (/(E+)/.test(fmt)) {
+    execResult = /(E+)/.exec(fmt)
+    fmt = fmt.replace(execResult[1], ((execResult[1].length > 1) ? (execResult[1].length > 2 ? '\u661f\u671f' : '\u5468') : '') + week[date.getDay() + ''])
+  }
+  for (var k in o) {
+    if (new RegExp('(' + k + ')').test(fmt)) {
+      execResult = new RegExp('(' + k + ')').exec(fmt)
+      fmt = fmt.replace(execResult[1], (execResult[1].length === 1) ? (o[k]) : (('00' + o[k]).substring(('' + o[k]).length)))
+    }
+  }
+  return fmt
+}
