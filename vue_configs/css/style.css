@@ -4,7 +4,7 @@
 .root-container {
   position: relative;
   width: 100%;
-  min-height: 755px;
+  /* min-height: 755px; */
   overflow: scroll;
   background: #ffffff;
 }
