@@ -25,8 +25,9 @@ if (runningSize > 1) {
 
 let { config, storage_name: _storage_name } = require('../config.js')(runtime, global)
 let sRequire = require('../lib/SingletonRequirer.js')(runtime, global)
-let commonFunction = sRequire('CommonFunction')
 config.show_debug_log = true
+config.async_save_log_file = false
+let commonFunction = sRequire('CommonFunction')
 let runningQueueDispatcher = sRequire('RunningQueueDispatcher')
 let paddleOcrUtil = sRequire('PaddleOcrUtil')
 runningQueueDispatcher.addRunningTask()
