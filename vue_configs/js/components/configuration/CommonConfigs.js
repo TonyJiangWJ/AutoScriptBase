@@ -1,15 +1,8 @@
-/*
- * @Author: TonyJiangWJ
- * @Date: 2020-12-18 14:30:58
- * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-12-26 11:34:14
- * @Description: 
- */
 
 /**
  * 锁屏相关配置
  */
- const LockConfig = {
+const LockConfig = {
   mixins: [mixin_common],
   data () {
     return {
@@ -59,13 +52,12 @@
     $app.registerFunction('gravitySensorChange', this.gravitySensorChange, true)
     $app.registerFunction('distanceSensorChange', this.distanceSensorChange, true)
   },
-  unmounted() {
+  unmounted () {
     $app.unregisterFunction('gravitySensorChange')
     $app.unregisterFunction('distanceSensorChange')
   },
   template: `
   <div>
-  <van-divider content-position="left">锁屏相关</van-divider>
     <van-cell-group>
       <van-field v-model="configs.password" label="锁屏密码" type="password" placeholder="请输入锁屏密码" input-align="right" />
       <number-field v-model="configs.timeout_unlock" label="解锁超时时间" placeholder="请输入解锁超时时间">
@@ -109,14 +101,12 @@ const FloatyConfig = {
         min_floaty_x: '',
         min_floaty_y: '',
         not_lingering_float_window: true,
+        release_screen_capture_when_waiting: false,
         not_setup_auto_start: true,
         disable_all_auto_start: true,
       },
       validations: {
-        min_floaty_color: {
-          validate: (v) => /^#[\dabcdef]{6}$/i.test(v),
-          message: () => '颜色值格式不正确'
-        },
+        min_floaty_color: VALIDATOR.COLOR,
       }
     }
   },
@@ -131,7 +121,6 @@ const FloatyConfig = {
   },
   template: `
   <div>
-    <van-divider content-position="left">悬浮窗配置</van-divider>
     <van-cell-group>
       <swipe-color-input-field label="悬浮窗颜色" :error-message="validationError.min_floaty_color" v-model="configs.min_floaty_color" placeholder="悬浮窗颜色值 #FFFFFF"/>
       <number-field v-model="configs.min_floaty_text_size" label-width="8em" label="悬浮窗字体大小" placeholder="请输入悬浮窗字体大小" >
@@ -147,6 +136,9 @@ const FloatyConfig = {
       <switch-cell title="不自动设置定时任务" label="是否在脚本执行完成后不自动设置定时任务，仅保留倒计时悬浮窗" title-style="flex:3;" v-model="configs.not_setup_auto_start" />
       <switch-cell v-if="configs.not_setup_auto_start" title="完全关闭定时任务功能" label="完全禁止脚本设置定时任务，只保留部分延迟机制的定时任务" title-style="flex:3;" v-model="configs.disable_all_auto_start" />
       <switch-cell v-if="!configs.not_setup_auto_start" title="不驻留前台" label="是否在脚本执行完成后不驻留前台，关闭倒计时悬浮窗" title-style="flex:3;" v-model="configs.not_lingering_float_window" />
+      <switch-cell v-if="!configs.not_setup_auto_start && !configs.not_lingering_float_window" title="释放截图权限"
+        label="是否在脚本显示悬浮窗倒计时等待时释放截图权限，可以降低等待时的CPU占用率，启用后等待时间大于5分钟才会释放"
+        title-style="flex:3;" v-model="configs.release_screen_capture_when_waiting" />
     </van-cell-group>
   </div>`
 }
@@ -163,6 +155,8 @@ const LogConfig = {
         show_debug_log: true,
         show_engine_id: true,
         save_log_file: true,
+        // 日志保留天数
+        log_saved_days: 3,
         back_size: '',
         async_save_log_file: true,
         console_log_maximum_size: 1500,
@@ -177,8 +171,7 @@ const LogConfig = {
   template: `
   <div>
     <van-divider content-position="left">
-    日志配置
-    <van-button style="margin-left: 0.4rem" plain hairline type="primary" size="mini" @click="showLogs">查看日志</van-button>
+      <van-button style="margin-left: 0.4rem" plain hairline type="primary" size="mini" @click="showLogs">查看日志</van-button>
     </van-divider>
       <van-cell-group>
         <tip-block v-if="!configs.is_pro">控制台保留的日志行数，避免运行时间长后保留太多的无用日志，导致内存浪费</tip-block>
@@ -189,37 +182,11 @@ const LogConfig = {
         <number-field v-if="configs.save_log_file" v-model="configs.back_size" label="日志文件滚动大小" label-width="8em" placeholder="请输入单个文件最大大小" >
           <template #right-icon><span>KB</span></template>
         </number-field>
+        <number-field v-if="configs.save_log_file" v-model="configs.log_saved_days" label="日志文件保留天数" label-width="8em" placeholder="请输入日志文件保留天数" >
+          <template #right-icon><span>天</span></template>
+        </number-field>
         <switch-cell title="是否异步保存日志到文件" v-model="configs.async_save_log_file" />
     </van-cell-group>
-  </div>`
-}
-
-/**
- * 开发模式
- */
-const DevelopConfig = {
-  mixins: [mixin_common],
-  data () {
-    return {
-      configs: {
-        develop_mode: true,
-        develop_saving_mode: true,
-        enable_visual_helper: true,
-        auto_check_update: true,
-      }
-    }
-  },
-  template: `
-  <div>
-  <van-cell-group>
-    <switch-cell title="是否自动检测更新" v-model="configs.auto_check_update" />
-    <switch-cell title="是否启用开发模式" v-model="configs.develop_mode" />
-    <template v-if="configs.develop_mode">
-      <tip-block>脚本执行时保存图片等数据，未启用开发模式时依旧有效，请不要随意开启。部分功能需要下载master分支才能使用，release分支代码开启后可能无法正常运行</tip-block>
-      <switch-cell title="是否保存一些开发用的数据" v-model="configs.develop_saving_mode" />
-      <switch-cell title="是否启用可视化辅助工具" v-model="configs.enable_visual_helper" />
-    </template>
-  </van-cell-group>
   </div>`
 }
 
@@ -227,9 +194,9 @@ const DevelopConfig = {
 /**
  * 高级设置
  */
- const AdvanceCommonConfig = {
+const AdvanceCommonConfig = {
   mixins: [mixin_common],
-  data() {
+  data () {
     return {
       configs: {
         single_script: true,
@@ -251,7 +218,7 @@ const DevelopConfig = {
   methods: {
     doAuthADB: function () {
       $app.invoke('doAuthADB', {})
-    }
+    },
   },
   template: `
   <div>
@@ -286,7 +253,7 @@ const DevelopConfig = {
  */
 const SkipPackageConfig = {
   mixins: [mixin_common],
-  data() {
+  data () {
     return {
       newSkipRunningPackage: '',
       newSkipRunningAppName: '',
@@ -360,45 +327,4 @@ const SkipPackageConfig = {
       <van-field v-model="newSkipRunningPackage" placeholder="请输入应用包名" label="应用包名" />
     </van-dialog>
   </div>`
-}
-
-/**
- * 关于项目
- */
-const About = {
-  data () {
-    return {
-      version: 'develop_version',
-    }
-  },
-  methods: {
-    openGithubUrl: function () {
-      console.log('点击url')
-      $app.invoke('openUrl', { url: 'https://github.com/TonyJiangWJ/AutoScriptBase' })
-    },
-    openDevelopMode: function () {
-      this.$router.push('/about/develop')
-    },
-    checkForUpdate: function () {
-      $app.invoke('downloadUpdate')
-    },
-  },
-  mounted () {
-    window.$nativeApi.request('getLocalVersion').then(r => {
-      this.version = r.versionName
-    })
-  },
-  template: `
-  <div class="about">
-    <van-cell-group>
-      <van-cell title="版本" :value="version"/>
-      <van-cell title="检测更新" value="点击更新" @click="checkForUpdate"/>
-      <van-cell title="作者" value="TonyJiangWJ"/>
-      <van-cell title="Email" value="TonyJiangWJ@gmail.com"/>
-      <van-cell title="Github" value="TonyJiangWJ/Ant-Forest" @click="openGithubUrl"/>
-      <van-cell title="开发模式" @click="openDevelopMode" is-link />
-    </van-cell-group>
-    <tip-block>本脚本免费使用，更新渠道只有Github，请不要被其他引流渠道欺骗了</tip-block>
-  </div>
-  `
 }

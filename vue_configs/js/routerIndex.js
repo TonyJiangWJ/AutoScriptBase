@@ -1,4 +1,3 @@
-
 const router = new VueRouter({
   scrollBehavior(to, from, savedPosition) {
     console.log('savedPosition', savedPosition)

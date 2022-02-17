@@ -7,6 +7,7 @@
  */
 
 const VALIDATOR = {
+  // 正整数
   P_INT: {
     validate: () => false,
     message: v => {
@@ -17,6 +18,16 @@ const VALIDATOR = {
       }
       return ''
     }
+  },
+  // 区域信息
+  REGION: {
+    validate: v => /^(([^0](\d+)|(\d)\s*)\s*,){3}([^0](\d+)|(\d)\s*)\s*$/.test(v),
+    message: () => '区域格式不正确'
+  },
+  // 颜色信息
+  COLOR: {
+    validate: (v) => /^#[\dabcdef]{6}$/i.test(v),
+    message: () => '颜色值格式不正确'
   }
 }
 
@@ -70,7 +81,9 @@ let mixin_methods = {
 let mixin_common = {
   mixins: [mixin_methods],
   data: function () {
-    return {}
+    return {
+      configs: {}
+    }
   },
   methods: {
     routerTo: function (path) {
@@ -88,12 +101,24 @@ let mixin_common = {
         this.device.width = config.device_width
         this.device.height = config.device_height
         this.is_pro = config.is_pro
+        this.onConfigLoad(config)
       })
     },
+    onConfigLoad: function (config) {},
+    onSaveConfig: function () {},
     doSaveConfigs: function (deleteFields) {
       console.log('执行保存配置')
+      let newConfigs = this.filterErrorFields(this.configs)
+      if (deleteFields && deleteFields.length > 0) {
+        deleteFields.forEach(key => {
+          newConfigs[key] = ''
+        })
+      }
+      $app.invoke('saveConfigs', newConfigs)
+    },
+    filterErrorFields: function (configs) {
       let newConfigs = {}
-      Object.assign(newConfigs, this.configs)
+      Object.assign(newConfigs, configs)
       let errorFields = Object.keys(this.validationError)
       if (errorFields && errorFields.length > 0) {
         errorFields.forEach(key => {
@@ -102,12 +127,7 @@ let mixin_common = {
           }
         })
       }
-      if (deleteFields && deleteFields.length > 0) {
-        deleteFields.forEach(key => {
-          newConfigs[key] = ''
-        })
-      }
-      $app.invoke('saveConfigs', newConfigs)
+      return newConfigs
     }
   },
   computed: {
@@ -456,6 +476,9 @@ Vue.component('region-input-field', function (resolve, reject) {
     },
     watch: {
       innerValue: function (v) {
+        if (!/^(\d+,){3}\d+$/.test(this.innerValue)) {
+          return
+        }
         if (this.arrayValue && this.isNotEmpty(v)) {
           this.$emit('change', v.split(',').map(v => parseInt(v)))
         } else {
@@ -865,7 +888,7 @@ Vue.component('base64-image-viewer', resolve => {
       <van-swipe-cell stop-propagation>
         <div style="display:flex; height: 3rem;align-items: center; padding-left:1rem;">
           <label>{{title}}:</label>
-          <img :src="base64Data" style="max-height:2.5rem;"/>
+          <img :src="base64Data" style="max-height:2.5rem;margin-left: auto; margin-right: 1rem;"/>
         </div>
         <template #right>
           <van-button square type="primary" text="修改Base64" @click="showBase64Inputer=true" />
@@ -920,4 +943,17 @@ function formatDate (date, fmt) {
     }
   }
   return fmt
+}
+
+API = {
+  post: function (url, data) {
+    return axios.post(url, qs.stringify(data))
+    .then(resp => Promise.resolve(resp.data))
+    .catch(e => Promise.reject(e))
+  },
+  get: function (url, data) {
+    return axios.get(url, data)
+    .then(resp => Promise.resolve(resp.data))
+    .catch(e => Promise.reject(e))
+  }
 }

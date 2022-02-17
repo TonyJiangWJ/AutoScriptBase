@@ -12,18 +12,16 @@ importClass(android.view.WindowManager)
 
 // ---修改状态栏颜色 start--
 // clear FLAG_TRANSLUCENT_STATUS flag:
-activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
 // add FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS flag to the window
 activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
 activity.getWindow().setStatusBarColor(android.R.color.white)
 activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
 // ---修改状态栏颜色 end--
 
-let dateFormat = require('./lib/DateUtil.js')
-let { config, default_config, storage_name } = require('./config.js')(runtime, this)
-let singletonRequire = require('./lib/SingletonRequirer.js')(runtime, this)
+let { config } = require('./config.js')(runtime, global)
+let singletonRequire = require('./lib/SingletonRequirer.js')(runtime, global)
 let FileUtils = singletonRequire('FileUtils')
-let commonFunctions = singletonRequire('CommonFunction')
 
 config.hasRootPermission = files.exists("/sbin/su") || files.exists("/system/xbin/su") || files.exists("/system/bin/su")
 if (config.device_width < 10 || config.device_height < 10) {
@@ -33,8 +31,8 @@ if (config.device_width < 10 || config.device_height < 10) {
 
 ui.layout(
   <vertical>
-    <webview id="loadingWebview" margin="0 10" />
-    <webview id="webview" margin="0 10" />
+    <webview id="loadingWebview" margin="0 0" />
+    <webview id="webview" margin="0 0" />
   </vertical>
 )
 let mainScriptPath = FileUtils.getRealMainScriptPath(true)
@@ -44,7 +42,10 @@ let loadingFilePath = "file://" + mainScriptPath + "/vue_configs/loading.html"
 let postMessageToWebView = () => { console.error('function not ready') }
 
 ui.webview.setVisibility(View.GONE)
-
+if (config.clear_webview_cache) {
+  ui.webview.clearCache(true)
+  config.overwrite('clear_webview_cache', false)
+}
 prepareWebView(ui.loadingWebview, {
   mainScriptPath: mainScriptPath,
   indexFilePath: loadingFilePath,
@@ -64,6 +65,7 @@ prepareWebView(ui.loadingWebview, {
       return versionName
     }
     ui.loadingWebview.loadUrl('javascript:setVersion("' + getLocalVersion() + '")')
+    ui.loadingWebview.loadUrl('javascript:setGithubUrl("' + config.github_url + '")')
   }
 })
 
@@ -73,6 +75,7 @@ params.height = config.device_height;
 params.width = config.device_width;
 ui.loadingWebview.setLayoutParams(params);
 let bridgeHandlerBuilder = require('./lib/BridgeHandler.js')
+let loadSuccess = false
 /**/
 postMessageToWebView = prepareWebView(ui.webview, {
   mainScriptPath: mainScriptPath,
@@ -85,7 +88,10 @@ postMessageToWebView = prepareWebView(ui.webview, {
     setTimeout(function () {
       ui.loadingWebview.setVisibility(View.GONE)
       ui.webview.setVisibility(View.VISIBLE)
+      activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
       log('切换webview')
+      ui.webview.loadUrl('javascript:window.vConsole && window.vConsole.destroy()')
+      loadSuccess = true
       setTimeout(function () {
         console.log('loadingWebview height:', ui.loadingWebview.getHeight())
         console.log('webview height:', ui.webview.getHeight())
@@ -96,14 +102,17 @@ postMessageToWebView = prepareWebView(ui.webview, {
   }
 })
 
+setTimeout(function () {
+  if (loadSuccess) {
+    return
+  }
+  toastLog('加载资源异常 请重试')
+  ui.loadingWebview.setVisibility(View.GONE)
+  ui.webview.setVisibility(View.VISIBLE)
+}, 10000)
+
 
 // ---------------------
-
-ui.emitter.on('pause', () => {
-  postMessageToWebView({ functionName: 'saveBasicConfigs' })
-  postMessageToWebView({ functionName: 'saveAdvanceConfigs' })
-  postMessageToWebView({ functionName: 'saveWidgetConfigs' })
-})
 
 let timeout = null
 ui.emitter.on('back_pressed', (e) => {

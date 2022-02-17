@@ -57,6 +57,7 @@ let default_config = {
   warn_skipped_ignore_package: false,
   warn_skipped_too_much: false,
   auto_check_update: false,
+  github_url: 'https://github.com/TonyJiangWJ/AutoScriptBase',
   // github release url 用于检测更新状态
   github_latest_url: '',
   // 延迟启动时延 5秒 悬浮窗中进行的倒计时时间
@@ -67,16 +68,24 @@ let default_config = {
   is_pro: is_pro,
   auto_set_bang_offset: true,
   bang_offset: 0,
-  thread_name_prefix: 'autoscript_'
+  thread_name_prefix: 'autoscript_',
+  // 标记是否清除webview缓存
+  clear_webview_cache: false,
 }
 // 不同项目需要设置不同的storageName，不然会导致配置信息混乱
 let CONFIG_STORAGE_NAME = 'autoscript_version'
 let PROJECT_NAME = 'AutoJS 脚手架'
 let config = {}
 let storageConfig = storages.create(CONFIG_STORAGE_NAME)
+let securityFields = ['password', 'alipay_lock_password']
+let AesUtil = require('./lib/AesUtil.js')
+let aesKey = device.getAndroidId()
 Object.keys(default_config).forEach(key => {
   let storedVal = storageConfig.get(key)
   if (typeof storedVal !== 'undefined') {
+    if (securityFields.indexOf(key) > -1) {
+      storedVal = AesUtil.decrypt(storedVal, aesKey) || storedVal
+    }
     config[key] = storedVal
   } else {
     config[key] = default_config[key]
@@ -91,6 +100,7 @@ if (!isRunningMode) {
         config: config,
         default_config: default_config,
         storage_name: CONFIG_STORAGE_NAME,
+        securityFields: securityFields,
         project_name: PROJECT_NAME
       }
     }

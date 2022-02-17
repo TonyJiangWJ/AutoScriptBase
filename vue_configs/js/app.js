@@ -18,7 +18,7 @@ let app = new Vue({
       transitionName: 'view-pop',
       false: true,
       showBack: this.$route.path != '/',
-      showMenuDialog: false
+      showMenuDialog: false,
     }
   },
   methods: {
@@ -60,17 +60,44 @@ let app = new Vue({
     },
     getDialogContainer: function () {
       return document.querySelector('html')
+    },
+    registerResizeWindow: function () {
+      $app.registerFunction('resizeWindow', ({ height, width }) => {
+        let newHeight = window.innerWidth / width * height
+        if (newHeight > currentHeight) {
+          currentHeight = newHeight
+          console.log('设置高度为：' + newHeight)
+          document.getElementById('app').style.height = currentHeight + 'px'
+        }
+      })
+    },
+    delayRegisterIfBridgeNotReady: function () {
+      if ($app.moke) {
+        console.log('bridge 未完成注册 等待')
+        let self = this
+        setTimeout(() => {
+          self.delayRegisterIfBridgeNotReady()
+        }, 10)
+      }
+      this.registerResizeWindow()
+    }
+  },
+  computed: {
+    menuTitle: function () {
+      return this.$store.getters.getTitle || '配置管理'
     }
   },
   watch: {
     '$route': function (to, from) {
       console.log('router changed from:', from.path, from.meta.index)
       console.log('router changed to:', to.path, to.meta.index)
+      this.$store.commit('setIndex', to.meta.index)
+      this.$store.commit('setTitle', to.meta.title || this.$store.getters.getTitleByPath(to.path))
       // this.transitionName = to.meta.index > from.meta.index ? 'view-push' : 'view-pop'
       this.transitionName = to.meta.index > from.meta.index ? 'slide-left' : 'slide-right'
       console.log('transitionName', this.transitionName)
       this.showBack = to.meta.index > 0
-    }
+    },
   },
   mounted () {
     this.$store.commit('setIndex', 1)
@@ -81,16 +108,7 @@ let app = new Vue({
         document.getElementById('app').style.height = currentHeight + 'px'
       }
     }, 1200)
-    $app.registerFunction('resizeWindow', ({ height, width }) => {
-      console.log('resizeWindow currentHeight:', currentHeight, 'window height:', window.innerHeight, 'webview height', height)
-      console.log('resizeWindow window width:', window.innerWidth, 'webview width', width)
-      console.log('body client height:', document.body.getBoundingClientRect().height)
-      let newHeight = window.innerWidth / width * height
-      if (newHeight > currentHeight) {
-        currentHeight = newHeight
-        console.log('设置高度为：' + newHeight)
-        document.getElementById('app').style.height = currentHeight + 'px'
-      }
-    })
+    console.log('准备注册 resizeWindow ' + (typeof $app) + ' ' + (typeof $app.registerFunction) + ' is moke?' + $app.moke)
+    this.delayRegisterIfBridgeNotReady()
   }
 })
