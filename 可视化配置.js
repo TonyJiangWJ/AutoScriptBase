@@ -38,6 +38,7 @@ ui.layout(
 let mainScriptPath = FileUtils.getRealMainScriptPath(true)
 let indexFilePath = "file://" + mainScriptPath + "/vue_configs/index.html"
 let loadingFilePath = "file://" + mainScriptPath + "/vue_configs/loading.html"
+let errorFilePath = "file://" + mainScriptPath + "/vue_configs/error.html"
 
 let postMessageToWebView = () => { console.error('function not ready') }
 
@@ -107,8 +108,7 @@ setTimeout(function () {
     return
   }
   toastLog('加载资源异常 请重试')
-  ui.loadingWebview.setVisibility(View.GONE)
-  ui.webview.setVisibility(View.VISIBLE)
+  ui.loadingWebview.loadUrl(errorFilePath)
 }, 10000)
 
 

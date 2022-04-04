@@ -139,6 +139,8 @@ let mixin_common = {
           let { [key]: validation } = this.validations
           if (this.isNotEmpty(value) && !validation.validate(value)) {
             errors[key] = validation.message(value)
+          } else if (!this.isNotEmpty(value) && validation.required) {
+            errors[key] = '此项必填'
           } else {
             errors[key] = ''
           }
@@ -886,16 +888,22 @@ Vue.component('base64-image-viewer', resolve => {
     template: `
     <div>
       <van-swipe-cell stop-propagation>
-        <div style="display:flex; height: 3rem;align-items: center; padding-left:1rem;">
+        <div class="base64-viewer">
           <label>{{title}}:</label>
-          <img :src="base64Data" style="max-height:2.5rem;margin-left: auto; margin-right: 1rem;"/>
+          <img :src="base64Data" class="base64-img"/>
         </div>
         <template #right>
           <van-button square type="primary" text="修改Base64" @click="showBase64Inputer=true" />
         </template>
       </van-swipe-cell>
-      <van-popup v-model="showBase64Inputer" position="bottom" :style="{ height: '30%', display: 'flex', alignItems: 'center' }" :get-container="getContainer">
-        <van-field v-model="innerValue" label="图片base64" type="textarea" placeholder="请输入base64" input-align="right" rows="6"/>
+      <van-popup v-model="showBase64Inputer" position="bottom" :style="{ height: '30%', alignItems: 'center' }" :get-container="getContainer">
+        <tip-block>左滑可清空数据</tip-block>
+        <van-swipe-cell stop-propagation style="width:100%">
+          <van-field v-model="innerValue" label="图片base64" type="textarea" placeholder="请输入base64" input-align="right" rows="6" />
+          <template #right>
+            <van-button square type="primary" text="清空" @click="innerValue=''" style="height:100%" />
+          </template>
+        </van-swipe-cell>
       </van-popup>
     </div>
     `
