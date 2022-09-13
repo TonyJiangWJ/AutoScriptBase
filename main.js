@@ -1,7 +1,7 @@
 /*
  * @Author: TonyJiangWJ
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2021-01-10 14:43:27
+ * @Last Modified time: 2022-07-14 09:15:30
  * @Description: 
  */
 require('./modules/init_if_needed.js')(runtime, this)
@@ -57,6 +57,7 @@ if (!commonFunctions.ensureAccessibilityEnabled()) {
   errorInfo('获取无障碍权限失败')
   exit()
 }
+commonFunctions.markExtendSuccess()
 logInfo('---前置校验完成;启动系统--->>>>')
 // 打印运行环境信息
 if (files.exists('version.json')) {
