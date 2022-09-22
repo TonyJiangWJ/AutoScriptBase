@@ -37,7 +37,7 @@
     d8cfe91f        device
   ```
 
-- 然后输入授权命令即可，'$packageName$' 替换成实际的AutoJS包名
+- 然后输入授权命令即可，'$packageName$' 替换成实际的AutoJS包名。通过脚本运行toastLog(context.getPackageName())可以获取包名，或者通过应用设置查看（不同系统不一样这里不做举例）
 
   ```shell
   adb shell pm grant '$packageName$' android.permission.WRITE_SECURE_SETTINGS
