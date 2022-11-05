@@ -98,6 +98,8 @@
 - 解锁功能扩展辅助：`unit/获取锁屏界面控件信息.js`
 - 图片实时二值化等 `test/visual_test/可视化测试工具.js` 目前只有一个功能，按运行后的提示来操作就行
 - 可视化配置工具，基于webvie和vue框架实现，H5内容在vue_configs下，新增配置项可以只修改`vue_configs/js/commponets/configuration.js` 和 `config.js` 两个文件，其他作为公用的可以不关注。如果会vue那么可以随你所想进行修改
+- 控件可视化辅助工具 电脑上浏览器打开 控件可视化/index.html 按界面提示操作
+- ![96f32786b6142f8bb4e44f7b1706afcb_689323151505_v_1667630351524368_1](https://user-images.githubusercontent.com/11325805/200108292-4097b77b-954f-4739-b80a-b10281d93b8c.gif)
 
 ## lib下的js说明
 

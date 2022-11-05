@@ -1,0 +1,584 @@
+<!--
+ * @Author: TonyJiangWJ
+ * @Date: 2022-10-30 10:08:31
+ * @Last Modified by: TonyJiangWJ
+ * @Last Modified time: 2022-11-05 15:19:55
+ * @Description: github: https://github.com/TonyJiangWJ/AutoScriptBase
+-->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>控件可视化</title>
+  <link href="./css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="./css/vuetify.min.css" rel="stylesheet">
+  <script src="./data.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <style>
+    .v-treeview-node__label {
+      overflow: unset;
+    }
+
+    .v-treeview {
+      overflow: scroll;
+      height: 877px;
+    }
+
+    .float_box_discover {
+      background-color: #00000000;
+      border-radius: 5px;
+      /* width: 150px;			 */
+      text-align: center;
+      position: absolute;
+    }
+
+    .v-sheet.v-list {
+      background: #00000000;
+    }
+
+    .code {
+      background-color: #e4e4e4;
+      border-radius: 5px;
+      padding: 0 5px;
+      margin: 0 5px;
+    }
+  </style>
+</head>
+
+<style>
+  td {
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  [v-cloak] {
+    display: none;
+  }
+</style>
+
+<body>
+  <div id="app" v-cloak>
+    <v-app>
+      <v-main>
+        <v-container>
+          <div v-show="findTargetObj" class="float_box_discover"
+            :style="{ 'left': winPos.x +'px', 'top': winPos.y+'px' }">
+            <v-list>
+              <v-list-item>
+                <v-btn elevation="2" @click="showDetail(null)">查看详情</v-btn>
+              </v-list-item>
+              <v-list-item>
+                <v-btn elevation="2" @click="removeItem(null)">排除</v-btn>
+              </v-list-item>
+            </v-list>
+
+          </div>
+          <v-row>
+            <v-col>
+              <p>运行 独立工具/获取当前页面的布局信息.js 然后将logs/uiobjects.json 复制到电脑上，将内容粘贴在下面的文本框中开始执行分析。</p>
+              <p>推荐直接使用ADB复制 如<span class="code">adb pull sdcard/脚本/AutoScriptBase/logs/uiobjects.json ./logs/</span>复制到电脑端的logs目录</p>
+              <p>
+                更进阶的是将内容赋值到 控件可视化/data.js 命令如下，Linux或MacOS可直接使用，Windows请自行安装bash命令
+                <span class="code">echo "let objects=" > 控件可视化/data.js && cat logs/uiobjects.json >> 控件可视化/data.js</span>
+                执行完刷新即可
+              </p>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col>
+              <v-textarea v-model="uiobjects" label="uiobject.json内容" :rows="5" row-height="15">
+              </v-textarea>
+            </v-col>
+          </v-row>
+          <v-row>
+            设备宽高{{deviceWidth}} {{deviceHeight}}
+          </v-row>
+          <v-row justify="start">
+            <v-col cols="2">
+              <v-checkbox v-model="visibleOnly" label="只显示可见节点"></v-checkbox>
+            </v-col>
+            <v-col cols="2">
+              <v-checkbox v-model="hasContent" label="只显示有内容节点[id,desc,text]"></v-checkbox>
+            </v-col>
+            <v-col cols="2">
+              <v-checkbox v-model="inScreen" label="只显示屏幕内节点"></v-checkbox>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col>
+              过滤函数是在树结构中筛选需要的节点，选择函数是自动选中并绘制筛选出来的节点，参数为node：例如填写<span class="code">node => !!node.content</span>筛选有文本内容的节点
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="6">
+              <v-textarea v-model="filterFuncStr" label="过滤函数" :rows="3" placeholder="匿名函数，参数为节点信息，返回boolean"
+                @blur="handleFuncStrChange"></v-textarea>
+            </v-col>
+            <v-col cols="6">
+              <v-textarea v-model="selectorFuncStr" label="选择函数" :rows="3" placeholder="匿名函数，参数为节点信息，返回boolean"
+                @blur="handleSelectorFuncStrChange"></v-textarea>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col>
+              <v-btn elevation="2" @click="openAll">全部打开</v-btn>
+              <v-btn elevation="2" @click="closeAll">全部关闭</v-btn>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="8">
+              <v-treeview ref="treeNode" open-all hoverable selectable dense :items="items" :open.sync="opened"
+                v-model="selectedItems" @update:active="handleActive">
+                <template v-slot:label="{ item }">
+                  <span :style="{color: item.root.visible?'black':'gray'}"
+                    @click="showDetail(item.root)">{{item.name}}</span>
+                </template>
+              </v-treeview>
+            </v-col>
+            <v-col cols="4">
+              <canvas id="myCanvas" width="400" height="889" style="border:1px solid #000000;">
+                您的浏览器不支持 HTML5 canvas 标签。
+              </canvas>
+            </v-col>
+          </v-row>
+        </v-container>
+        <v-dialog v-model="dialog" width="700">
+          <v-card style="padding: 2rem;">
+            <div v-for="(item, i) in uiObjectItems" :key="i">
+              <v-row>
+                <v-col cols="4">{{item.label}}:</v-col>
+                <v-col cols="8">{{item.value}}</v-col>
+              </v-row>
+            </div>
+          </v-card>
+        </v-dialog>
+    </v-app>
+  </div>
+
+  <script src="./js/vue.js"></script>
+  <script src="./js/vuetify.js"></script>
+  <script>
+    let allKey = []
+    let allObject = []
+    function buildWithChild (childArray, filter) {
+      let rootNode = childArray[0]
+      if (typeof filter != "undefined" && !filter(rootNode, childArray)) {
+        console.log('过滤无效节点')
+        return null
+      }
+      allObject.push(rootNode)
+      let name = ''
+      if (rootNode.id) {
+        name += ' id:' + rootNode.id
+      }
+      if (rootNode.content) {
+        name += ` [${rootNode.isDesc ? 'desc' : 'text'}]:${rootNode.content}`
+      }
+      if (rootNode.boundsInfo) {
+        let bounds = rootNode.boundsInfo
+        name += ` bounds: [${bounds.left}, ${bounds.top} - ${bounds.right}, ${bounds.bottom}]`
+      }
+      let { left, top, right, bottom } = rootNode.boundsInfo
+      let root = {
+        open: true,
+        root: rootNode,
+        id: `${rootNode.depth}'-'${rootNode.index} ${rootNode.id ? rootNode.id : ''}[${left}_${top}_${right}_${bottom}]`,
+        name,
+        visible: rootNode.visible,
+        children: []
+      }
+      allKey.push(root.id)
+      if (childArray.length > 1) {
+        let i = 0
+        for (let i = 1; i < childArray.length; i++) {
+          let child = buildWithChild(childArray[i], filter)
+          if (child) {
+            root.children.push(child)
+          }
+        }
+        console.log(root.children)
+        root.children = root.children.sort((a, b) => {
+          let idxA = a.root.indexInParent
+          let idxB = b.root.indexInParent
+          return idxA - idxB
+        })
+      }
+      // this.$refs.treeNode.updateAll()
+      return root
+    }
+
+    function findOpenedParent (root, selectedCache) {
+      let opened = []
+      findOpened(root, selectedCache, opened)
+      return opened
+    }
+
+    function findOpened (root, selectedCache, opened) {
+      if (selectedCache.has(root.id)) {
+        opened.push(root.id)
+        return true
+      }
+      if (!root.children || root.children.length <= 0) {
+        return false
+      }
+      let hasChild = false
+      for (let i = 0; i < root.children.length; i++) {
+        let child = root.children[i]
+        if (selectedCache.has(child.id)) {
+          opened.push(root.id)
+          hasChild = true
+        }
+        if (findOpened(child, selectedCache, opened)) {
+          opened.push(root.id)
+          hasChild = true
+        }
+      }
+      return hasChild
+    }
+  </script>
+
+  <script>
+
+    let deviceWidth = null
+    let deviceHeight = null
+    let columns = [
+      {
+        key: 'boundsInfo',
+        convert: item => {
+          let { left, right, top, bottom } = item.boundsInfo
+          return `rect:[${left},${top},${right},${bottom}] region:[${left},${top},${right - left},${bottom - top}]`
+        }
+      },
+      { key: 'desc' },
+      { key: 'text' },
+      { key: 'id' },
+      { key: 'depth' },
+      { key: 'indexInParent' },
+      { key: 'drawingOrder' },
+      { key: 'visibleToUser' },
+      { key: 'clickable' },
+      { key: 'longClickable' },
+      { key: 'className' },
+      { key: 'packageName' },
+      { key: 'checkable' },
+      { key: 'checked' },
+      { key: 'focusable' },
+      { key: 'focused' },
+      { key: 'accessibilityFocused' },
+      { key: 'selected' },
+      { key: 'enabled' },
+      { key: 'password' },
+      { key: 'scrollable' },
+      { key: 'row' },
+      { key: 'rowCount' },
+      { key: 'rowSpan' },
+      { key: 'column' },
+      { key: 'columnCount' },
+      { key: 'columnSpan' },
+    ]
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data () {
+        return {
+          uiobjects: typeof objects != 'undefined' && !!objects ? JSON.stringify(objects) : '',
+          // uiobjects: '',
+          opened: [],
+          visibleOnly: false,
+          hasContent: false,
+          inScreen: false,
+          dialog: false,
+          itemDetail: '',
+          selectedItems: [],
+          selectedCache: new Set(),
+          deviceHeight: null,
+          deviceWidth: null,
+          filterFuncStr: '',
+          filterFunc: null,
+          selectorFuncStr: '',
+          selectorFunc: null,
+          selectedCache: new Set(),
+          drawedObjects: [],
+          winPos: { x: 0, y: 0 },
+          findTargetObj: false,
+          clearId: null,
+          itemId: null,
+          lastFindId: null,
+        }
+      },
+      computed: {
+        items: function () {
+          if (this.uiobjects) {
+            allKey = []
+            allObject = []
+            let data = JSON.parse(this.uiobjects)
+            if (data && data.length > 0) {
+              this.deviceHeight = data[0].boundsInfo.bottom
+              this.deviceWidth = data[0].boundsInfo.right
+              deviceHeight = this.deviceHeight
+              deviceWidth = this.deviceWidth
+              console.log(data)
+              let root = buildWithChild(data, this.filter)
+              if (this.selectorFunc) {
+                let _this = this
+                setTimeout(function () {
+                  _this.selectedCache.clear()
+                  _this.autoSelect(root, _this.selectorFunc)
+                  let list = []
+                  _this.selectedCache.forEach(id => {
+                    list.push(id)
+                  })
+                  _this.selectedItems = list
+                  _this.opened = findOpenedParent(root, _this.selectedCache)
+                }, 100)
+              }
+              return [root]
+            }
+          }
+          return []
+        },
+        filter: function () {
+          return (rootNode, childArray) => {
+            if (this.visibleOnly) {
+              if (!rootNode.visible) {
+                return false
+              }
+            }
+            if (this.hasContent) {
+              if (!rootNode.content && !rootNode.id && !hasValidChild(childArray, this.filter)) {
+                return false
+              }
+            }
+            if (this.inScreen) {
+              let { left, top, right, bottom } = rootNode.boundsInfo
+              console.log('info:', JSON.stringify({ left, top, right, bottom }))
+              let inScreen = widthInScreen(left) && heightInScreen(top) && widthInScreen(right) && heightInScreen(bottom)
+              if (!inScreen && !hasValidChild(childArray, this.filter)) {
+                return false
+              }
+            }
+            if (this.filterFunc) {
+              if (!this.filterFunc(rootNode) && !hasValidChild(childArray, this.filter)) {
+                return false
+              }
+            }
+            // return rootNode.className=='com.lynx.tasm.ui.image.FlattenUIImage' || childArray.length > 1
+            return true
+          }
+        },
+        uiObjectItems: function () {
+          if (this.itemDetail) {
+            let itemInfo = JSON.parse(this.itemDetail)
+            let labelItems = []
+            return columns.map(item => ({ label: item.label || item.key, value: item.convert ? item.convert(itemInfo) : itemInfo[item.key] }))
+          }
+          return []
+        }
+      },
+      watch: {
+        selectedItems: {
+          deep: true,
+          immediate: true,
+          handler: function () {
+            if (this.items && this.items.length > 0 && this.selectedItems.length > 0) {
+              let _this = this
+              this.drawCanvas(_this.items, _this.selectedItems)
+            } else {
+              console.log('无可绘制节点', this.items)
+              this.drawedObjects = []
+              this.clearCanvas()
+            }
+          }
+        }
+      },
+      methods: {
+        autoSelect: function (obj, selector) {
+          if (!obj) {
+            return false
+          }
+          if (selector(obj.root) && !this.selectedCache.has(obj.id)) {
+            console.log('找到匹配的对象 id:', obj.id, 'root:', JSON.stringify(obj.root))
+            this.selectedCache.add(obj.id)
+          }
+          if (obj.children && obj.children.length > 0) {
+            obj.children.forEach(child => this.autoSelect(child, selector))
+          }
+        },
+        handleFuncStrChange: function () {
+          try {
+            console.log('func changed', this.filterFuncStr)
+            let func = eval(this.filterFuncStr)
+            this.filterFunc = func
+          } catch (e) {
+            this.filterFunc = null
+            console.error(e)
+          }
+        },
+        handleSelectorFuncStrChange: function () {
+          try {
+            console.log('func changed', this.selectorFuncStr)
+            let func = eval(this.selectorFuncStr)
+            this.selectorFunc = func
+          } catch (e) {
+            this.selectorFunc = null
+            console.error(e)
+          }
+        },
+        openAll: function () {
+          this.opened = allKey
+          console.log('全部打开', this.$refs.treeNode.open, this.opened)
+          // this.$refs.treeNode.updateAll()
+        },
+        closeAll: function () {
+          this.opened = []
+        },
+        showDetail: function (root) {
+          this.dialog = true
+          if (root) {
+            this.itemDetail = JSON.stringify(root, true)
+          }
+        },
+        handleActive: function (items) {
+          // console.log({
+          //   key: 'active'
+          // }, items)
+        },
+        clearCanvas: function () {
+          if (this.$el && this.$el.canvas) {
+            this.$el.canvas.width = this.$el.canvas.width
+            this.$el.canvas.height = 400 / deviceWidth * deviceHeight
+            this.$el.ctx.scale(400 / deviceWidth, 400 / deviceWidth)
+          }
+        },
+        drawCanvas: async function (uiObjects, selectedItems) {
+          if (!(uiObjects && uiObjects.length > 0)) {
+            return
+          }
+          this.selectedCache = new Set()
+          this.drawedObjects = []
+          selectedItems.forEach(key => this.selectedCache.add(key))
+          let drawed = new Set()
+          console.log('清空canvas')
+          this.clearCanvas()
+          this.$el.ctx.strokeStyle = "#23ff00";
+          console.log('绘制')
+          await uiObjects.forEach(object => this.drawChild(object, this.selectedCache, this.$el.ctx, drawed))
+        },
+        drawChild: function (object, selectedCache, ctx, drawed) {
+          let { left, top, right, bottom } = object.root.boundsInfo
+          let key = `${left}_${top}_${right}_${bottom}`
+          if (selectedCache.has(object.id) && !drawed.has(key) && widthInScreen(left) && widthInScreen(right) && heightInScreen(top) && heightInScreen(bottom)) {
+            // console.log('绘制：', left, top, right - left, bottom - top)
+            ctx.strokeRect(left, top, right - left, bottom - top)
+            drawed.add(key)
+            this.drawedObjects.push(object)
+          }
+          if (object.children && object.children.length > 0) {
+            object.children.forEach(child => this.drawChild(child, selectedCache, ctx, drawed))
+          }
+        },
+        findTarget: async function (x, y, showMenu) {
+          let realX = x * deviceWidth / 400
+          let realY = y * deviceWidth / 400
+          console.log('实际坐标：', `${realX}, ${realY}`)
+          let findObjects = this.drawedObjects.filter(({ root: r }) => {
+            let { left, top, right, bottom } = r.boundsInfo
+            r.distance = realX - left + right - realX + bottom - realY + realY - top
+            return left <= realX && right >= realX && top <= realY && bottom >= realY
+          }).sort((a, b) => a.root.distance - b.root.distance)
+          if (findObjects.length > 0) {
+            this.clearCanvas()
+            this.$el.ctx.strokeStyle = '#23ff00'
+            this.drawedObjects.forEach(obj => {
+              let { left, top, right, bottom } = obj.root.boundsInfo
+              this.$el.ctx.strokeRect(left, top, right - left, bottom - top)
+            })
+            // console.log('找到了匹配的对象:', JSON.stringify(findObjects))
+            let _this = this
+            this.itemDetail = JSON.stringify(findObjects[0].root)
+            this.itemId = findObjects[0].id
+            if (showMenu) {
+              this.lastFindId = this.itemId
+            }
+            this.$el.ctx.strokeStyle = '#ff0000'
+            let { left, top, right, bottom } = findObjects[0].root.boundsInfo
+            // console.log('绘制rect', left, top, right - left, bottom - top)
+            this.$el.ctx.strokeRect(left, top, right - left, bottom - top)
+          }
+          this.findTargetObj = this.itemId && this.itemId == this.lastFindId
+          if (!this.findTargetObj) {
+            this.lastFindId = null
+          }
+        },
+        removeItem: function () {
+          let idx = this.selectedItems.indexOf(this.itemId)
+          this.selectedItems.splice(idx, 1)
+          this.itemId == null
+          this.lastFindId = null
+          this.findTargetObj = false
+        }
+      },
+      mounted () {
+        this.$el.canvas = document.getElementById('myCanvas')
+        this.$el.ctx = this.$el.canvas.getContext('2d')
+        let _this = this
+        this.$el.canvas.onclick = function (event) {
+          let x = event.offsetX;
+          let y = event.offsetY;
+          console.log('点击位置：', `${x}, ${y}`, event)
+          _this.winPos = {
+            x: event.pageX,
+            y: event.pageY,
+          }
+          _this.findTarget(x, y, true)
+        }
+
+        this.$el.canvas.onmousemove = function (e) {
+          let x = event.offsetX;
+          let y = event.offsetY;
+          _this.clearId && clearTimeout(_this.clearId)
+          _this.clearId = setTimeout(() => {
+            _this.findTarget(x, y)
+          }, 5)
+        }
+      }
+    })
+  </script>
+
+  <script>
+    function hasValidChild (childArray, func) {
+      if (!childArray || childArray.length < 1) {
+        return false
+      }
+      if (func(childArray[0])) {
+        return true
+      }
+      for (let i = 1; i < childArray.length; i++) {
+        if (hasValidChild(childArray[i], func)) {
+          return true
+        }
+      }
+      return false
+    }
+
+    function widthInScreen (x) {
+      return x >= 0 && x <= deviceWidth
+    }
+
+    function heightInScreen (y) {
+      return y >= 0 && y <= deviceHeight
+    }
+  </script>
+  <script>
+    function boundsInside (root, l, t, r, b) {
+      let { left, top, right, bottom } = root.boundsInfo
+      return left >= l && right <= r && top >= t && bottom <= b
+    }
+  </script>
+
+
+</body>
+
+</html>
