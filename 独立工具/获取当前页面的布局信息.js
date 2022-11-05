@@ -2,15 +2,20 @@
  * @Author: TonyJiangWJ
  * @Date: 2020-04-29 14:44:49
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-10-19 17:52:05
+ * @Last Modified time: 2022-11-01 22:03:10
  * @Description: 
  */
 let { config } = require('../config.js')(runtime, global)
 let singletonRequire = require('../lib/SingletonRequirer.js')(runtime, global)
-let widgetUtils = singletonRequire('WidgetUtils')
 let logUtils = singletonRequire('LogUtils')
 let floatyInstance = singletonRequire('FloatyUtil')
 let commonFunctions = singletonRequire('CommonFunction')
+let FileUtils = singletonRequire('FileUtils')
+
+let workpath = FileUtils.getCurrentWorkPath()
+runtime.loadDex(workpath + '/lib/autojs-common.dex')
+importClass(com.tony.autojs.search.UiObjectTreeBuilder)
+
 commonFunctions.registerOnEngineRemoved(function () {
   logUtils.showCostingInfo()
 }, 'logging cost')
@@ -41,32 +46,54 @@ while (limit > 0) {
   sleep(1000)
 }
 floatyInstance.setFloatyText('正在分析中...')
-
-
+let windowRootsList = getWindowRoots()
+// 最大深度
+let maxDepth = -1
+let treeNodeBuilder = new UiObjectTreeBuilder(runtime.getAccessibilityBridge())
 let uiObjectInfoList = null
 let start = new Date().getTime()
-let root = getActiveWindowRoot()
+let nodeList = treeNodeBuilder.buildTreeNode()
+logUtils.debugInfo(['获取总根节点数：{}', nodeList.size()])
+if (nodeList.size() <= 0) {
+  logUtils.warnInfo(['获取根节点失败 退出执行'], true)
+  exit()
+}
+let root = nodeList.get(0)
+let windowSummary = commonFunctions.formatString('获取总窗口数：{} 活动窗口包名：{}', windowRootsList.length, windowRootsList.filter(v => v.active)[0].packageName)
+let rootSummary = commonFunctions.formatString('{}\n总根节点数：{} 当前展示第一个根节点的数据', windowSummary, nodeList.size())
 if (root) {
-  let boundsInfo = root.bounds()
-  let content = root.text() || root.desc()
-  let id = root.id()
-  logUtils.logInfo([
+  let rootObj = root.root
+  let boundsInfo = rootObj.bounds()
+  let content = rootObj.text() || rootObj.desc()
+  let id = rootObj.id()
+  let rootInfo = commonFunctions.formatString(
     'rootInfo id:{} content: {} bounds:[{}, {}, {}, {}]',
     id, content,
     boundsInfo.left, boundsInfo.top, boundsInfo.width(), boundsInfo.height()
-  ])
-  let resultList = iterateAll(root).filter(v => v !== null).sort((a, b) => {
+  )
+  rootSummary += '\n' + rootInfo
+  logUtils.infoLog(rootInfo)
+  let rawList = iterateAll(root).filter(v => v !== null)
+
+  // 异步写入文件 用于后续分析
+  threads.start(function () {
+    let savePath = workpath + '/logs/uiobjects.json'
+    files.write(savePath, JSON.stringify(rawList))
+    toastLog('控件元数据以保存到：' + savePath)
+  })
+  let resultList = rawList.sort((a, b) => {
     let depth1 = getCompareDepth(a)
     let depth2 = getCompareDepth(b)
     logUtils.debugInfo(['depth1:{} depth2: {}', depth1, depth2])
     if (depth1 > depth2) {
       return 1
     } else if (depth1 === depth2) {
-      return 0
+      return compareWithIndex(a, b)
     } else {
       return -1
     }
   })
+  rootSummary += '\n控件最大深度：' + maxDepth
   uiObjectInfoList = flatMap(flatArrayList, resultList)
 
   floatyInstance.setPosition(parseInt(config.device_width / 5), parseInt(config.device_height / 2))
@@ -80,9 +107,10 @@ floatyInstance.close()
 if (uiObjectInfoList) {
   let timeCost = new Date().getTime() - start
   let total = uiObjectInfoList.length
-  let logInfoList = uiObjectInfoList.filter(v => v && v.hasUsableInfo()).map(v => v.toString())
+  // let logInfoList = uiObjectInfoList.filter(v => v && v.hasUsableInfo()).map(v => v.toString())
+  let logInfoList = uiObjectInfoList.map(v => v.toString())
   // let content = removeMinPrefix(logInfoList).join('\n')
-  let content = logInfoList.join('\n')
+  let content = rootSummary + '\n' + logInfoList.join('\n')
   logUtils.infoLog('\n' + content)
   logUtils.logInfo('布局层次结果已经保存到logs/info.log')
   dialogs.build({
@@ -102,19 +130,19 @@ if (uiObjectInfoList) {
     })
     .show()
 }
-
 function iterateAll (root, depth, index) {
-  if (isEmpty(root)) {
+  if (root.root == null) {
     return null
   }
   index = index || 0
   depth = depth || 0
-  let uiObjectInfo = new UiObjectInfo(root, depth, index)
+  maxDepth = Math.max(maxDepth, depth)
+  let uiObjectInfo = new UiObjectInfo(root.root, depth, index)
   logUtils.logInfo(uiObjectInfo.toString())
-  if (root.getChildCount() > 0) {
-    return [uiObjectInfo].concat(root.children().map((child, index) => iterateAll(child, depth + 1, index)))
+  if (root.getChildList().size() > 0) {
+    return [uiObjectInfo].concat(runtime.bridges.bridges.toArray(root.getChildList()).map((child, index) => iterateAll(child, depth + 1, index)))
   } else {
-    return uiObjectInfo
+    return [uiObjectInfo]
   }
 }
 
@@ -125,13 +153,40 @@ function UiObjectInfo (uiObject, depth, index) {
   this.boundsInfo = uiObject.bounds()
   this.depth = depth
   this.index = index
+  this.indexInParent = uiObject.indexInParent()
+  this.visible = uiObject.visibleToUser()
+  this.visibleToUser = uiObject.visibleToUser()
+  this.clickable = uiObject.clickable()
+  this.drawingOrder = uiObject.drawingOrder()
+  this.className = uiObject.className()
+  this.packageName = uiObject.packageName()
+  this.mDepth = uiObject.depth()
+  this.checkable = uiObject.checkable()
+  this.checked = uiObject.checked()
+  this.focusable = uiObject.focusable()
+  this.focused = uiObject.focused()
+  this.accessibilityFocused = uiObject.accessibilityFocused()
+  this.selected = uiObject.selected()
+  this.longClickable = uiObject.longClickable()
+  this.enabled = uiObject.enabled()
+  this.password = uiObject.password()
+  this.scrollable = uiObject.scrollable()
+  this.row = uiObject.row()
+  this.column = uiObject.column()
+  this.rowSpan = uiObject.rowSpan()
+  this.columnSpan = uiObject.columnSpan()
+  this.rowCount = uiObject.rowCount()
+  this.columnCount = uiObject.columnCount()
+  this.desc = uiObject.desc()
+  this.text = uiObject.text()
 
 
   this.toString = function () {
     return commonFunctions.formatString(
       // ----[depth:index] id:[] [text/desc]content:[] bounds:[]
-      '{}[{}:{}]{}{}{}',
+      '{}[{}:{}]visible:[{}]{}{}{}',
       new Array(this.depth + 1).join('-'), this.depth, this.index,
+      this.visible,
       this.isEmpty(this.id) ? '' : 'id:[' + this.id + ']',
       this.isEmpty(this.content) ? '' :
         commonFunctions.formatString(
@@ -183,12 +238,34 @@ function getCompareDepth (a) {
         return getCompareDepth(a[i])
       } else {
         let data = a[i]
-        if (data.id || data.content)
-          return data.depth
+        // if (data.id || data.content)
+        return data.depth
       }
     }
   } else {
     return a.depth
+  }
+}
+
+function compareWithIndex (a, b) {
+  let idxA = getCompareIndex(a)
+  let idxB = getCompareIndex(b)
+  return idxA - idxB
+}
+
+function getCompareIndex (a) {
+  if (a instanceof Array) {
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] instanceof Array) {
+        return getCompareIndex(a[i])
+      } else {
+        let data = a[i]
+        // if (data.id || data.content)
+        return data.indexInParent
+      }
+    }
+  } else {
+    return a.indexInParent
   }
 }
 
@@ -231,7 +308,8 @@ function removeMinPrefix (list) {
   return result
 }
 
-function getActiveWindowRoot() {
+function getWindowRoots () {
+  let windowInfoList = []
   let windows = runtime.accessibilityBridge.getService().getWindows()
   if (windows != null && windows.size() > 0) {
     logUtils.debugInfo('获取窗体数量：' + windows.size())
@@ -242,17 +320,33 @@ function getActiveWindowRoot() {
       if (window.isActive()) {
         activeRootNode = root
         logUtils.debugInfo('活动的目标窗口：' + root.getPackageName())
+        windowInfoList.push({ active: true, packageName: root.getPackageName(), findByWindows: true })
       } else {
         logUtils.debugInfo('非活动的窗口：' + (root != null ? root.getPackageName() : ''))
+        windowInfoList.push({ active: false, packageName: (root != null ? root.getPackageName() : ''), findByWindows: true })
       }
     }
-    if (activeRootNode != null) {
-      let uiObjectRoot = com.stardust.automator.UiObject.Companion.createRoot(activeRootNode)
-      if (uiObjectRoot) {
-        logUtils.debugInfo('获取uiObjectRoot成功')
-        return uiObjectRoot
+    // if (activeRootNode != null) {
+    //   let uiObjectRoot = com.stardust.automator.UiObject.Companion.createRoot(activeRootNode)
+    //   if (uiObjectRoot) {
+    //     logUtils.debugInfo('获取uiObjectRoot成功')
+    //     return uiObjectRoot
+    //   }
+    // }
+  }
+  let windowRoots = runtime.getAccessibilityBridge().windowRoots()
+  if (windowRoots && windowRoots.size() > 0) {
+    logUtils.debugInfo(['windowRoots size: {}', windowRoots.size()])
+    for (let i = windowRoots.size() - 1; i >= 0; i--) {
+      let root = windowRoots.get(i)
+      if (root !== null && root.getPackageName()) {
+        logUtils.debugInfo(['找到windowRoots index: {} packageName: {}', i, root.getPackageName()])
+        windowInfoList.push({ active: true, packageName: root.getPackageName(), findByWindows: false })
+      } else {
+        logUtils.debugInfo(['找到windowRoots index: {} packageName: 未知', i])
+        windowInfoList.push({ active: false, packageName: '', findByWindows: true })
       }
     }
   }
-  return null
+  return windowInfoList
 }

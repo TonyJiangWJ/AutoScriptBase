@@ -134,10 +134,11 @@ const FloatyConfig = {
       </number-field>
       <number-field v-model="configs.min_floaty_x" label="悬浮窗位置X" placeholder="请输入悬浮窗横坐标位置" />
       <number-field v-model="configs.min_floaty_y" label="悬浮窗位置Y" placeholder="请输入悬浮窗纵坐标位置" />
-      <tip-block>刘海屏或者挖孔屏悬浮窗显示位置和实际目测位置不同，需要施加一个偏移量，一般是负值，脚本运行时会自动设置</tip-block>
+      <tip-block>刘海屏或者挖孔屏悬浮窗显示位置和实际目测位置不同，需要施加一个偏移量，一般是负值，脚本运行时会自动设置，非异形屏请自行修改为0</tip-block>
       <switch-cell title="下次执行时重新识别" v-model="configs.auto_set_bang_offset" />
-      <van-cell center title="当前偏移量">
-        <span>{{configs.auto_set_bang_offset ? "下次执行时重新识别": configs.bang_offset}}</span>
+      <number-field v-if="!configs.auto_set_bang_offset" v-model="configs.bang_offset" label="偏移量" label-width="12em" />
+      <van-cell center title="偏移量" v-else>
+        <span>下次执行时重新识别</span>
       </van-cell>
       <switch-cell title="不自动设置定时任务" label="是否在脚本执行完成后不自动设置定时任务，仅保留倒计时悬浮窗" title-style="flex:3;" v-model="configs.not_setup_auto_start" />
       <switch-cell v-if="configs.not_setup_auto_start" title="完全关闭定时任务功能" label="完全禁止脚本设置定时任务，只保留部分延迟机制的定时任务" title-style="flex:3;" v-model="configs.disable_all_auto_start" />
@@ -210,7 +211,7 @@ const AdvanceCommonConfig = {
   data () {
     return {
       activeNames: [],
-      enabledServices: '',
+      enabledServices: 'com.taobao.idlefishs.modify.opencv4/org.autojs.autojs.timing.work.AlarmManagerProvider:com.taobao.idlefishs.modify.opencv4/org.autojs.autojs.timing.work.AlarmManagerProvider:com.taobao.idlefishs.modify.opencv4/org.autojs.autojs.timing.work.AlarmManagerProvider',
       configs: {
         single_script: true,
         auto_restart_when_crashed: true,
@@ -244,12 +245,23 @@ const AdvanceCommonConfig = {
   methods: {
     doAuthADB: function () {
       $app.invoke('doAuthADB', {})
+      let _this = this
+      setTimeout(() => {
+        _this.getEnabledServices()
+      }, 2000)
     },
+    copyText: function (text) {
+      console.log('复制文本：', text)
+      $app.invoke('copyText', { text })
+    },
+    getEnabledServices: function () {
+      $nativeApi.request('getEnabledServices', {}).then(resp => {
+        this.enabledServices = resp.enabledServices
+      })
+    }
   },
   mounted() {
-    $nativeApi.request('getEnabledServices', {}).then(resp => {
-      this.enabledServices = resp.enabledServices
-    })
+    this.getEnabledServices()
   },
   template: `
   <div>
@@ -270,7 +282,11 @@ const AdvanceCommonConfig = {
           <van-cell v-else v-for="service in accessibilityServices" :title="service" :key="service" style="overflow:auto;" />
           <van-divider content-position="left">当前已启用的无障碍服务</van-divider>
           <van-cell v-if="enabledAccessibilityServices.length==0" title="无"/>
-          <van-cell v-else v-for="service in enabledAccessibilityServices" :title="service" :key="service" style="overflow:auto;" />
+          <van-cell v-else v-for="service in enabledAccessibilityServices" :title="service" :key="service" style="overflow:auto;">
+            <template #right-icon>
+              <van-button plain hairline type="primary" size="mini" style="margin-left: 0.3rem;width: 2rem;" @click="copyText(service)">复制</van-button>
+            </template>
+          </van-cell>
         </van-collapse-item>
       </van-collapse>
       <switch-cell title="是否使用模拟滑动" v-model="configs.useCustomScrollDown" />
