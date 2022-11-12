@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2022-10-30 10:08:31
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2022-11-12 11:21:24
+ * @Last Modified time: 2022-11-12 17:00:17
  * @Description: github: https://github.com/TonyJiangWJ/AutoScriptBase
 -->
 <!DOCTYPE html>
@@ -109,6 +109,7 @@
                   sdcard/脚本/AutoScriptBase/logs/data.js ./控件可视化/</span>
                 执行完刷新即可
               </p>
+              <p>历史获取的控件信息会保存在<span class="code">logs/hisUiObjects</span>下，根据实际情况使用。注意定时清理不需要的文件</p>
             </v-col>
           </v-row>
           <v-row>
@@ -118,7 +119,7 @@
             </v-col>
           </v-row>
           <v-row>
-            设备宽高{{deviceWidth}} {{deviceHeight}}
+            设备宽高{{deviceWidth}} {{deviceHeight}} 总控件数：{{totalWidgets}} 筛选的：{{selectedItems?selectedItems.length:0}}
           </v-row>
           <v-row justify="start" no-gutters>
             <v-col cols="4">
@@ -242,11 +243,11 @@
         visible: rootNode.visible,
         children: []
       }
-      if (idChecker.has(root.id)) {
-        console.error('id 重复 ', root.id)
-      } else {
-        idChecker.add(root.id)
+      while (idChecker.has(root.id)) {
+        // console.error('id 重复 ', root.id)
+        root.id += 'x'
       }
+      idChecker.add(root.id)
       allKey.push(root.id)
       if (childArray.length > 1) {
         let i = 0
@@ -364,7 +365,8 @@
           itemId: null,
           lastFindId: null,
           items: [],
-          buildingTimeoutId: null
+          buildingTimeoutId: null,
+          totalWidgets: 0,
         }
       },
       computed: {
@@ -409,7 +411,7 @@
             return columns.map(item => ({ label: item.label || item.key, value: item.convert ? item.convert(itemInfo) : itemInfo[item.key] }))
           }
           return []
-        }
+        },
       },
       watch: {
         selectedItems: {
@@ -492,6 +494,7 @@
                   callback && callback()
                 }
                 _this.items = [root]
+                _this.totalWidgets = allKey.length
                 // }, 10)
               }
             } else {
