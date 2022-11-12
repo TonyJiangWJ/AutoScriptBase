@@ -2,8 +2,8 @@
  * @Author: TonyJiangWJ
  * @Date: 2020-04-29 14:44:49
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2022-11-01 22:03:10
- * @Description: 
+ * @Last Modified time: 2022-11-12 10:47:05
+ * @Description: https://github.com/TonyJiangWJ/AutoScriptBase
  */
 let { config } = require('../config.js')(runtime, global)
 let singletonRequire = require('../lib/SingletonRequirer.js')(runtime, global)
@@ -11,14 +11,25 @@ let logUtils = singletonRequire('LogUtils')
 let floatyInstance = singletonRequire('FloatyUtil')
 let commonFunctions = singletonRequire('CommonFunction')
 let FileUtils = singletonRequire('FileUtils')
-
+let formatDate = require('../lib/DateUtil.js')
 let workpath = FileUtils.getCurrentWorkPath()
 runtime.loadDex(workpath + '/lib/autojs-common.dex')
 importClass(com.tony.autojs.search.UiObjectTreeBuilder)
 
+let args = engines.myEngine().execArgv
+console.log('来源参数：' + JSON.stringify(args))
+let immediate = args.immediate
 commonFunctions.registerOnEngineRemoved(function () {
   logUtils.showCostingInfo()
 }, 'logging cost')
+
+// 检查手机是否开启无障碍服务
+// 当无障碍经常莫名消失时  可以传递true 强制开启无障碍
+// if (!commonFunctions.checkAccessibilityService(true)) {
+if (!commonFunctions.ensureAccessibilityEnabled()) {
+  toastLog('获取无障碍权限失败')
+  exit()
+}
 // 清空所有日志
 logUtils.clearLogFile()
 if (!floatyInstance.init()) {
@@ -41,7 +52,7 @@ if (!floatyInstance.hasOwnProperty('setFloatyInfo')) {
 floatyInstance.setFloatyInfo({ x: parseInt(config.device_width / 2.7), y: parseInt(config.device_height / 2) }, '即将开始分析', { textSize: 20 })
 sleep(1000)
 let limit = 3
-while (limit > 0) {
+while (limit > 0 && !immediate) {
   floatyInstance.setFloatyText('倒计时' + limit-- + '秒')
   sleep(1000)
 }
@@ -55,7 +66,7 @@ let start = new Date().getTime()
 let nodeList = treeNodeBuilder.buildTreeNode()
 logUtils.debugInfo(['获取总根节点数：{}', nodeList.size()])
 if (nodeList.size() <= 0) {
-  logUtils.warnInfo(['获取根节点失败 退出执行'], true)
+  logUtils.warnInfo(['获取根节点失败 退出执行 请检查无障碍是否正常'], true)
   exit()
 }
 let root = nodeList.get(0)
@@ -78,8 +89,16 @@ if (root) {
   // 异步写入文件 用于后续分析
   threads.start(function () {
     let savePath = workpath + '/logs/uiobjects.json'
-    files.write(savePath, JSON.stringify(rawList))
-    toastLog('控件元数据以保存到：' + savePath)
+    let content = JSON.stringify(rawList)
+    files.write(savePath, content)
+    files.write(workpath + '/logs/data.js', 'let objects = ' + content)
+    files.write(workpath + '/控件可视化/data.js', 'let objects = ' + content)
+    let hisPath = workpath + '/logs/hisUiObjects/' + formatDate(new Date(), 'yyyyMMdd/')
+    console.log('ensureDir?' + files.ensureDir(hisPath))
+    let time = formatDate(new Date(), 'HHmmss')
+    files.write(hisPath + '/uiobjects.' + time + '.json', content)
+    files.write(hisPath + '/data.' + time + '.js', 'let objects = ' + content)
+    toastLog('控件元数据已保存到：' + savePath)
   })
   let resultList = rawList.sort((a, b) => {
     let depth1 = getCompareDepth(a)
@@ -148,7 +167,7 @@ function iterateAll (root, depth, index) {
 
 function UiObjectInfo (uiObject, depth, index) {
   this.content = uiObject.text() || uiObject.desc() || ''
-  this.isDesc = typeof uiObject.desc() !== 'undefined' && uiObject.desc() !== ''
+  this.isDesc = typeof uiObject.desc() !== 'undefined' && uiObject.desc() !== '' && uiObject.desc() != null
   this.id = uiObject.id()
   this.boundsInfo = uiObject.bounds()
   this.depth = depth

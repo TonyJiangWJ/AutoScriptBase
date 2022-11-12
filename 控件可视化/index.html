@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2022-10-30 10:08:31
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2022-11-05 15:19:55
+ * @Last Modified time: 2022-11-12 11:21:24
  * @Description: github: https://github.com/TonyJiangWJ/AutoScriptBase
 -->
 <!DOCTYPE html>
@@ -43,6 +43,30 @@
       padding: 0 5px;
       margin: 0 5px;
     }
+
+    @media screen and (min-device-width: 500px) {
+      .left-tree {
+        max-width: 100%;
+        flex: 0 0 100%;
+      }
+
+      .right-canvas {
+        max-width: 100%;
+        flex: 0 0 100%;
+      }
+    }
+
+    @media screen and (min-device-width: 1030px) {
+      .left-tree {
+        max-width: 60%;
+        flex: 0 0 60%;
+      }
+
+      .right-canvas {
+        max-width: 40%;
+        flex: 0 0 40%;
+      }
+    }
   </style>
 </head>
 
@@ -73,51 +97,54 @@
                 <v-btn elevation="2" @click="removeItem(null)">排除</v-btn>
               </v-list-item>
             </v-list>
-
           </div>
           <v-row>
             <v-col>
-              <p>运行 独立工具/获取当前页面的布局信息.js 然后将logs/uiobjects.json 复制到电脑上，将内容粘贴在下面的文本框中开始执行分析。</p>
-              <p>推荐直接使用ADB复制 如<span class="code">adb pull sdcard/脚本/AutoScriptBase/logs/uiobjects.json ./logs/</span>复制到电脑端的logs目录</p>
+              <p>运行<span class="code">独立工具/获取当前页面的布局信息.js</span>或通过<span class="code">独立工具/布局分析悬浮窗.js</span>触发</p>
+              <p>然后将<span class="code">logs/uiobjects.json</span>复制到电脑上，将内容粘贴在下面的文本框中开始执行分析。</p>
+              <p>可以使用ADB复制 如<span class="code">adb pull sdcard/脚本/AutoScriptBase/logs/uiobjects.json
+                  ./logs/</span>复制到电脑端的logs目录</p>
               <p>
-                更进阶的是将内容赋值到 控件可视化/data.js 命令如下，Linux或MacOS可直接使用，Windows请自行安装bash命令
-                <span class="code">echo "let objects=" > 控件可视化/data.js && cat logs/uiobjects.json >> 控件可视化/data.js</span>
+                推荐直接将<span class="code">logs/data.js</span>复制到电脑上，如<span class="code">adb pull
+                  sdcard/脚本/AutoScriptBase/logs/data.js ./控件可视化/</span>
                 执行完刷新即可
               </p>
             </v-col>
           </v-row>
           <v-row>
             <v-col>
-              <v-textarea v-model="uiobjects" label="uiobject.json内容" :rows="5" row-height="15">
+              <v-textarea v-model="uiobjects" label="uiobjects.json内容" :rows="5" row-height="15">
               </v-textarea>
             </v-col>
           </v-row>
           <v-row>
             设备宽高{{deviceWidth}} {{deviceHeight}}
           </v-row>
-          <v-row justify="start">
-            <v-col cols="2">
+          <v-row justify="start" no-gutters>
+            <v-col cols="4">
               <v-checkbox v-model="visibleOnly" label="只显示可见节点"></v-checkbox>
             </v-col>
-            <v-col cols="2">
+            <v-col cols="4">
               <v-checkbox v-model="hasContent" label="只显示有内容节点[id,desc,text]"></v-checkbox>
             </v-col>
-            <v-col cols="2">
+            <v-col cols="4">
               <v-checkbox v-model="inScreen" label="只显示屏幕内节点"></v-checkbox>
             </v-col>
           </v-row>
           <v-row>
             <v-col>
-              过滤函数是在树结构中筛选需要的节点，选择函数是自动选中并绘制筛选出来的节点，参数为node：例如填写<span class="code">node => !!node.content</span>筛选有文本内容的节点
+              <p>过滤函数是在树结构中筛选需要的节点，选择函数是自动选中并绘制筛选出来的节点，推荐写法为AutoJS UiSelector的形式。</p>
+              <p>例如填写<span class="code">boundsInside(100, 500, 700, 2000).className('android.widget.TextView').filter(v => v.boundsInfo.right - v.boundsInfo.left <= 200)</span>筛选区域内的宽度小于200的TextView节点</p>
             </v-col>
           </v-row>
           <v-row>
             <v-col cols="6">
-              <v-textarea v-model="filterFuncStr" label="过滤函数" :rows="3" placeholder="匿名函数，参数为节点信息，返回boolean"
+              <v-textarea v-model="filterFuncStr" label="过滤函数" :rows="3" placeholder="如使用 UiSelector 写法为: boundsInside(500, 2000, 700, 2300)"
                 @blur="handleFuncStrChange"></v-textarea>
             </v-col>
             <v-col cols="6">
-              <v-textarea v-model="selectorFuncStr" label="选择函数" :rows="3" placeholder="匿名函数，参数为节点信息，返回boolean"
+              <v-textarea v-model="selectorFuncStr" label="选择函数" :rows="3"
+                placeholder="如使用匿名函数，写法为：node => /.*签到.*/.test(node.desc)"
                 @blur="handleSelectorFuncStrChange"></v-textarea>
             </v-col>
           </v-row>
@@ -125,19 +152,20 @@
             <v-col>
               <v-btn elevation="2" @click="openAll">全部打开</v-btn>
               <v-btn elevation="2" @click="closeAll">全部关闭</v-btn>
+              <v-btn elevation="2" @click="selectAll">全部选中</v-btn>
             </v-col>
           </v-row>
           <v-row>
-            <v-col cols="8">
+            <v-col class="left-tree">
               <v-treeview ref="treeNode" open-all hoverable selectable dense :items="items" :open.sync="opened"
-                v-model="selectedItems" @update:active="handleActive">
+                selection-type="independent" v-model="selectedItems" @update:active="handleActive">
                 <template v-slot:label="{ item }">
                   <span :style="{color: item.root.visible?'black':'gray'}"
                     @click="showDetail(item.root)">{{item.name}}</span>
                 </template>
               </v-treeview>
             </v-col>
-            <v-col cols="4">
+            <v-col class="right-canvas">
               <canvas id="myCanvas" width="400" height="889" style="border:1px solid #000000;">
                 您的浏览器不支持 HTML5 canvas 标签。
               </canvas>
@@ -152,7 +180,28 @@
                 <v-col cols="8">{{item.value}}</v-col>
               </v-row>
             </div>
+            <v-card-actions v-if="stackItems.length > 1">
+              <v-spacer>总堆叠数：{{showDetailIdx+1}}/{{stackItems.length}}</v-spacer>
+              <v-btn
+                color="primary"
+                text
+                :disabled="showDetailIdx==0"
+                @click="showDetailIdx--"
+              >
+                上一个
+              </v-btn>
+              <v-btn
+                color="primary"
+                text
+                @click="showDetailIdx++"
+                :disabled="showDetailIdx >= stackItems.length - 1"
+              >
+                下一个
+              </v-btn>
+            </v-card-actions>
           </v-card>
+          
+        </v-card>
         </v-dialog>
     </v-app>
   </div>
@@ -162,6 +211,10 @@
   <script>
     let allKey = []
     let allObject = []
+    let canvasWidth = 400
+    let deviceWidth = 1080
+    let deviceHeight = 2340
+    let idChecker = new Set()
     function buildWithChild (childArray, filter) {
       let rootNode = childArray[0]
       if (typeof filter != "undefined" && !filter(rootNode, childArray)) {
@@ -174,7 +227,7 @@
         name += ' id:' + rootNode.id
       }
       if (rootNode.content) {
-        name += ` [${rootNode.isDesc ? 'desc' : 'text'}]:${rootNode.content}`
+        name += ` [${!!rootNode.desc ? 'desc' : 'text'}]:${rootNode.content}`
       }
       if (rootNode.boundsInfo) {
         let bounds = rootNode.boundsInfo
@@ -184,10 +237,15 @@
       let root = {
         open: true,
         root: rootNode,
-        id: `${rootNode.depth}'-'${rootNode.index} ${rootNode.id ? rootNode.id : ''}[${left}_${top}_${right}_${bottom}]`,
+        id: `${rootNode.depth}-${rootNode.indexInParent}_${rootNode.id ? rootNode.id : ''}[${left}_${top}_${right}_${bottom}]`,
         name,
         visible: rootNode.visible,
         children: []
+      }
+      if (idChecker.has(root.id)) {
+        console.error('id 重复 ', root.id)
+      } else {
+        idChecker.add(root.id)
       }
       allKey.push(root.id)
       if (childArray.length > 1) {
@@ -198,7 +256,7 @@
             root.children.push(child)
           }
         }
-        console.log(root.children)
+        // console.log(root.children)
         root.children = root.children.sort((a, b) => {
           let idxA = a.root.indexInParent
           let idxB = b.root.indexInParent
@@ -237,12 +295,6 @@
       }
       return hasChild
     }
-  </script>
-
-  <script>
-
-    let deviceWidth = null
-    let deviceHeight = null
     let columns = [
       {
         key: 'boundsInfo',
@@ -278,6 +330,9 @@
       { key: 'columnCount' },
       { key: 'columnSpan' },
     ]
+  </script>
+
+  <script>
     new Vue({
       el: '#app',
       vuetify: new Vuetify(),
@@ -291,6 +346,8 @@
           inScreen: false,
           dialog: false,
           itemDetail: '',
+          stackItems: [],
+          showDetailIdx: 0,
           selectedItems: [],
           selectedCache: new Set(),
           deviceHeight: null,
@@ -299,47 +356,20 @@
           filterFunc: null,
           selectorFuncStr: '',
           selectorFunc: null,
-          selectedCache: new Set(),
           drawedObjects: [],
+          drawDuplicatedObjects: [],
           winPos: { x: 0, y: 0 },
           findTargetObj: false,
           clearId: null,
           itemId: null,
           lastFindId: null,
+          items: [],
+          buildingTimeoutId: null
         }
       },
       computed: {
-        items: function () {
-          if (this.uiobjects) {
-            allKey = []
-            allObject = []
-            let data = JSON.parse(this.uiobjects)
-            if (data && data.length > 0) {
-              this.deviceHeight = data[0].boundsInfo.bottom
-              this.deviceWidth = data[0].boundsInfo.right
-              deviceHeight = this.deviceHeight
-              deviceWidth = this.deviceWidth
-              console.log(data)
-              let root = buildWithChild(data, this.filter)
-              if (this.selectorFunc) {
-                let _this = this
-                setTimeout(function () {
-                  _this.selectedCache.clear()
-                  _this.autoSelect(root, _this.selectorFunc)
-                  let list = []
-                  _this.selectedCache.forEach(id => {
-                    list.push(id)
-                  })
-                  _this.selectedItems = list
-                  _this.opened = findOpenedParent(root, _this.selectedCache)
-                }, 100)
-              }
-              return [root]
-            }
-          }
-          return []
-        },
         filter: function () {
+          console.log('filter changed')
           return (rootNode, childArray) => {
             if (this.visibleOnly) {
               if (!rootNode.visible) {
@@ -369,8 +399,12 @@
           }
         },
         uiObjectItems: function () {
-          if (this.itemDetail) {
-            let itemInfo = JSON.parse(this.itemDetail)
+          let detail = this.itemDetail ? JSON.parse(this.itemDetail) : null
+          if (this.stackItems.length > 1) {
+            detail = this.stackItems[this.showDetailIdx].root
+          }
+          if (detail) {
+            let itemInfo = detail
             let labelItems = []
             return columns.map(item => ({ label: item.label || item.key, value: item.convert ? item.convert(itemInfo) : itemInfo[item.key] }))
           }
@@ -382,6 +416,7 @@
           deep: true,
           immediate: true,
           handler: function () {
+            console.log('selectedItems changed:', this.selectedItems.length)//, this.selectedItems)
             if (this.items && this.items.length > 0 && this.selectedItems.length > 0) {
               let _this = this
               this.drawCanvas(_this.items, _this.selectedItems)
@@ -391,15 +426,86 @@
               this.clearCanvas()
             }
           }
-        }
+        },
+        uiobjects: {
+          handler () {
+            this.buildItems()
+          }
+        },
+        filter: {
+          handler () {
+            this.buildItems()
+          },
+          immediate: true,
+          deep: true
+        },
+        visibleOnly: function () {
+          this.buildItems()
+        },
+        hasContent: function () {
+          this.buildItems()
+        },
+        inScreen: function () {
+          this.buildItems()
+        },
       },
       methods: {
+        buildItems: function (callback) {
+          // debugger
+          console.log('触发buildItems')
+          // if (this.buildingTimeoutId) {
+          //   clearTimeout(this.buildingTimeoutId)
+          // }
+          let _this = this
+          this.buildingTimeoutId = setTimeout(function () {
+            if (_this.uiobjects) {
+              allKey = []
+              allObject = []
+              let data = JSON.parse(_this.uiobjects)
+              if (data && data.length > 0) {
+                _this.deviceHeight = data[0].boundsInfo.bottom
+                _this.deviceWidth = data[0].boundsInfo.right
+                deviceHeight = _this.deviceHeight
+                deviceWidth = _this.deviceWidth
+                // console.log(data)
+                // setTimeout(() => {
+                idChecker = new Set()
+                let root = buildWithChild(data, _this.filter)
+                if (_this.selectorFunc) {
+                  // setTimeout(function () {
+                  _this.selectedCache.clear()
+                  _this.autoSelect(root, _this.selectorFunc)
+                  let list = []
+                  _this.selectedCache.forEach(id => {
+                    list.push(id)
+                  })
+                  // debugger
+                  // 延迟变更
+                  setTimeout(function () {
+                    console.log('build items select items:', list.length)
+                    _this.selectedItems = list
+                    _this.opened = findOpenedParent(root, _this.selectedCache)
+                    callback && callback()
+                  }, 20)
+                  // }, 100)
+                } else {
+                  callback && callback()
+                }
+                _this.items = [root]
+                // }, 10)
+              }
+            } else {
+              _this.items = []
+            }
+          }, 10)
+
+        },
         autoSelect: function (obj, selector) {
           if (!obj) {
             return false
           }
           if (selector(obj.root) && !this.selectedCache.has(obj.id)) {
-            console.log('找到匹配的对象 id:', obj.id, 'root:', JSON.stringify(obj.root))
+            // console.log('找到匹配的对象 id:', obj.id, 'root:', JSON.stringify(obj.root))
             this.selectedCache.add(obj.id)
           }
           if (obj.children && obj.children.length > 0) {
@@ -409,8 +515,21 @@
         handleFuncStrChange: function () {
           try {
             console.log('func changed', this.filterFuncStr)
-            let func = eval(this.filterFuncStr)
-            this.filterFunc = func
+            if (!this.filterFuncStr) {
+              this.filterFunc = v => true
+              this.buildItems(this.openAll)
+              return
+            }
+
+            let lambdaCheck = /^\w+\s*=>/
+            if (lambdaCheck.test(this.filterFuncStr)) {
+              let func = eval(this.filterFuncStr)
+              this.filterFunc = func
+            } else {
+              this.filterFunc = eval('v=>new Selector(v).' + this.filterFuncStr + '.find()')
+              console.log('非lambda函数，自动创建selector', this.filterFunc)
+            }
+            this.buildItems()
           } catch (e) {
             this.filterFunc = null
             console.error(e)
@@ -419,8 +538,20 @@
         handleSelectorFuncStrChange: function () {
           try {
             console.log('func changed', this.selectorFuncStr)
-            let func = eval(this.selectorFuncStr)
-            this.selectorFunc = func
+            if (!this.selectorFuncStr) {
+              this.selectorFunc = null
+              this.buildItems(this.openAll)
+              return
+            }
+            let lambdaCheck = /^\w+\s*=>/
+            if (lambdaCheck.test(this.selectorFuncStr)) {
+              let func = eval(this.selectorFuncStr)
+              this.selectorFunc = func
+            } else {
+              this.selectorFunc = eval('v=>new Selector(v).' + this.selectorFuncStr + '.find()')
+              console.log('非lambda函数，自动创建selector', this.selectorFunc)
+            }
+            this.buildItems()
           } catch (e) {
             this.selectorFunc = null
             console.error(e)
@@ -428,7 +559,7 @@
         },
         openAll: function () {
           this.opened = allKey
-          console.log('全部打开', this.$refs.treeNode.open, this.opened)
+          // console.log('全部打开', this.$refs.treeNode.open, this.opened)
           // this.$refs.treeNode.updateAll()
         },
         closeAll: function () {
@@ -440,31 +571,35 @@
             this.itemDetail = JSON.stringify(root, true)
           }
         },
+        selectAll: function () {
+          this.selectedItems = allKey
+        },
         handleActive: function (items) {
-          // console.log({
-          //   key: 'active'
-          // }, items)
+          console.log({
+            key: 'active'
+          }, items)
         },
         clearCanvas: function () {
           if (this.$el && this.$el.canvas) {
             this.$el.canvas.width = this.$el.canvas.width
-            this.$el.canvas.height = 400 / deviceWidth * deviceHeight
-            this.$el.ctx.scale(400 / deviceWidth, 400 / deviceWidth)
+            this.$el.canvas.height = canvasWidth / deviceWidth * deviceHeight
+            this.$el.ctx.scale(canvasWidth / deviceWidth, canvasWidth / deviceWidth)
           }
         },
         drawCanvas: async function (uiObjects, selectedItems) {
           if (!(uiObjects && uiObjects.length > 0)) {
             return
           }
-          this.selectedCache = new Set()
+          let tmpSelectCache = new Set()
           this.drawedObjects = []
-          selectedItems.forEach(key => this.selectedCache.add(key))
+          this.drawDuplicatedObjects = []
+          selectedItems.forEach(key => tmpSelectCache.add(key))
           let drawed = new Set()
           console.log('清空canvas')
           this.clearCanvas()
           this.$el.ctx.strokeStyle = "#23ff00";
           console.log('绘制')
-          await uiObjects.forEach(object => this.drawChild(object, this.selectedCache, this.$el.ctx, drawed))
+          await uiObjects.forEach(object => this.drawChild(object, tmpSelectCache, this.$el.ctx, drawed))
         },
         drawChild: function (object, selectedCache, ctx, drawed) {
           let { left, top, right, bottom } = object.root.boundsInfo
@@ -474,14 +609,16 @@
             ctx.strokeRect(left, top, right - left, bottom - top)
             drawed.add(key)
             this.drawedObjects.push(object)
+          } else if (drawed.has(key)) {
+            this.drawDuplicatedObjects.push(object)
           }
           if (object.children && object.children.length > 0) {
             object.children.forEach(child => this.drawChild(child, selectedCache, ctx, drawed))
           }
         },
         findTarget: async function (x, y, showMenu) {
-          let realX = x * deviceWidth / 400
-          let realY = y * deviceWidth / 400
+          let realX = x * deviceWidth / canvasWidth
+          let realY = y * deviceWidth / canvasWidth
           console.log('实际坐标：', `${realX}, ${realY}`)
           let findObjects = this.drawedObjects.filter(({ root: r }) => {
             let { left, top, right, bottom } = r.boundsInfo
@@ -501,6 +638,8 @@
             this.itemId = findObjects[0].id
             if (showMenu) {
               this.lastFindId = this.itemId
+              this.showDetailIdx = 0
+              this.stackItems = [findObjects[0]].concat(this.getStackObjects())
             }
             this.$el.ctx.strokeStyle = '#ff0000'
             let { left, top, right, bottom } = findObjects[0].root.boundsInfo
@@ -515,9 +654,37 @@
         removeItem: function () {
           let idx = this.selectedItems.indexOf(this.itemId)
           this.selectedItems.splice(idx, 1)
+          let stackObjects = this.getStackObjects()
+          console.log('堆叠数：', stackObjects.length + 1)
+          if (stackObjects.length > 0) {
+            stackObjects.forEach(remove => {
+              let idx = this.selectedItems.indexOf(remove.id)
+              if (idx > -1) {
+                console.log('remove', remove.id, 'idx', idx)
+                this.selectedItems.splice(idx, 1)
+              }
+            })
+          }
           this.itemId == null
           this.lastFindId = null
           this.findTargetObj = false
+        },
+        getStackObjects: function () {
+          let detailObj = JSON.parse(this.itemDetail)
+          return this.drawDuplicatedObjects.filter(v => {
+            let key1 = buildKey(v.root)
+            let key2 = buildKey(detailObj)
+            if (key1 == key2) {
+              console.log('remove key: ', key1)
+              return true
+            }
+            return false
+            // 
+            function buildKey (root) {
+              let { left, top, right, bottom } = root.boundsInfo
+              return `${left}_${top}_${right}_${bottom}`
+            }
+          })
         }
       },
       mounted () {
@@ -542,6 +709,23 @@
           _this.clearId = setTimeout(() => {
             _this.findTarget(x, y)
           }, 5)
+        }
+        setTimeout(() => {
+          _this.buildItems(_this.openAll)
+        }, 10)
+        function recalculate () {
+          canvasWidth = Math.min(400, window.innerWidth - 20)
+          console.log('计算canvas width:', canvasWidth)
+          _this.$el.canvas.width = canvasWidth
+          _this.$el.canvas.height = canvasWidth / deviceWidth * deviceHeight
+        }
+        recalculate()
+        let calculating = null
+        window.onresize = function () {
+          if (calculating) {
+            clearTimeout(calculating)
+          }
+          calculating = setTimeout(() => recalculate(), 50)
         }
       }
     })
@@ -575,6 +759,230 @@
     function boundsInside (root, l, t, r, b) {
       let { left, top, right, bottom } = root.boundsInfo
       return left >= l && right <= r && top >= t && bottom <= b
+    }
+    function boundsContains (root, l, t, r, b) {
+      let { left, top, right, bottom } = root.boundsInfo
+      return left <= l && right >= r && top <= t && bottom >= b
+    }
+  </script>
+  <script>
+    function Selector (node) {
+      this.filters = []
+      this.bounds = function (l, t, r, b) {
+        this.filters.push(v => {
+          let { left, top, right, bottom } = root.boundsInfo
+          return left == l && top == t && right == r && bottom == b
+        })
+        return this
+      }
+      this.boundsInside = function (l, t, r, b) {
+        this.filters.push(v => boundsInside(v, l, t, r, b))
+        return this
+      }
+      this.boundsContains = function (l, t, r, b) {
+        this.filters.push(v => boundsContains(v, l, t, r, b))
+        return this
+      }
+
+      this.depth = function (depth) {
+        this.filters.push(v => v.depth == depth)
+        return this
+      }
+
+      this.text = function (text) {
+        this.filters.push(v => v.text == text)
+        return this
+      }
+
+      this.textContains = function (text) {
+        this.filters.push(v => v.text && v.text.indexOf(text) > -1)
+        return this
+      }
+
+      this.textMatches = function (text) {
+        this.filters.push(v => v.text && new RegExp('^' + text + '$').test(v.text))
+        return this
+      }
+
+      this.textStartsWith = function (start) {
+        this.filters.push(v => v.text && v.text.startsWith(start))
+        return this
+      }
+
+      this.textEndsWith = function (end) {
+        this.filters.push(v => v.text && v.text.endsWith(end))
+        return this
+      }
+
+      this.desc = function (desc) {
+        this.filters.push(v => v.desc == desc)
+        return this
+      }
+
+      this.descContains = function (desc) {
+        this.filters.push(v => v.desc && v.desc.indexOf(desc) > -1)
+        return this
+      }
+
+      this.descMatches = function (desc) {
+        this.filters.push(v => v.desc && new RegExp('^' + desc + '$').test(v.desc))
+        return this
+      }
+
+      this.descStartsWith = function (start) {
+        this.filters.push(v => v.desc && v.desc.startsWith(start))
+        return this
+      }
+
+      this.descEndsWith = function (end) {
+        this.filters.push(v => v.desc && v.desc.endsWith(end))
+        return this
+      }
+
+      this.id = function (id) {
+        this.filters.push(v => v.id == id)
+        return this
+      }
+
+      this.idContains = function (id) {
+        this.filters.push(v => v.id && v.id.indexOf(id) > -1)
+        return this
+      }
+
+      this.idMatches = function (id) {
+        this.filters.push(v => v.id && new RegExp('^' + id + '$').test(v.id))
+        return this
+      }
+
+      this.idStartsWith = function (start) {
+        this.filters.push(v => v.id && v.id.startsWith(start))
+        return this
+      }
+
+      this.idEndsWith = function (end) {
+        this.filters.push(v => v.id && v.id.endsWith(end))
+        return this
+      }
+
+
+      this.className = function (className) {
+        this.filters.push(v => v.className == className)
+        return this
+      }
+
+      this.classNameContains = function (className) {
+        this.filters.push(v => v.className && v.className.indexOf(className) > -1)
+        return this
+      }
+
+      this.classNameMatches = function (className) {
+        this.filters.push(v => v.className && new RegExp('^' + className + '$').test(v.className))
+        return this
+      }
+
+      this.classNameStartsWith = function (start) {
+        this.filters.push(v => v.className && v.className.startsWith(start))
+        return this
+      }
+
+      this.classNameEndsWith = function (end) {
+        this.filters.push(v => v.className && v.className.endsWith(end))
+        return this
+      }
+      this.drawingOrder = function (check) {
+        this.filters.push(v => v.drawingOrder == check)
+        return this
+      }
+
+      this.clickable = function (check) {
+        if (typeof check === "undefined") {
+          check = true
+        }
+        this.filters.push(v => {
+          let result = v.clickable == check
+          if (result) {
+            // console.log('check?', check)
+            // console.log('clickable:', v.clickable)
+            // console.log("v：", JSON.stringify(v))
+            return true
+          }
+          return false
+        })
+        return this
+      }
+
+      this.longClickable = function (check) {
+        if (typeof check === "undefined") {
+          check = true
+        }
+        this.filters.push(v => v.longClickable == check)
+        return this
+      }
+
+      this.checkable = function (check) {
+        if (typeof check === "undefined") {
+          check = true
+        }
+        this.filters.push(v => v.checkable == check)
+        return this
+      }
+
+      this.selected = function (check) {
+        if (typeof check === "undefined") {
+          check = true
+        }
+        this.filters.push(v => v.selected == check)
+        return this
+      }
+
+      this.enabled = function (check) {
+        if (typeof check === "undefined") {
+          check = true
+        }
+        this.filters.push(v => v.enabled == check)
+        return this
+      }
+
+      this.scrollable = function (check) {
+        if (typeof check === "undefined") {
+          check = true
+        }
+        this.filters.push(v => v.scrollable == check)
+        return this
+      }
+
+      this.editable = function (check) {
+        if (typeof check === "undefined") {
+          check = true
+        }
+        this.filters.push(v => v.editable == check)
+        return this
+      }
+
+      this.visibleToUser = function (check) {
+        if (typeof check === "undefined") {
+          check = true
+        }
+        this.filters.push(v => v.visibleToUser == check)
+        return this
+      }
+
+      this.filter = function (func) {
+        this.filters.push(func)
+        return this
+      }
+
+      this.find = function () {
+        if (this.filters.length > 0) {
+          for (let i = 0; i < this.filters.length; i++) {
+            let f = this.filters[i]
+            if (!f(node)) {
+              return false
+            }
+          }
+        }
+        return true
+      }
     }
   </script>
 
