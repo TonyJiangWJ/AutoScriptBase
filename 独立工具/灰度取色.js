@@ -2,25 +2,15 @@
  * 原作者QQ: 1811588980
  * 修改者：https://github.com/TonyJiangWJ
  */
+// 杀死当前同名脚本
+(()=>{let g=engines.myEngine();var e=engines.all(),n=e.length;let r=g.getSource()+"";1<n&&e.forEach(e=>{var n=e.getSource()+"";g.id!==e.id&&n==r&&e.forceStop()})})();
+
 importClass(java.io.StringWriter)
 importClass(java.io.StringReader)
 importClass(java.io.PrintWriter)
 importClass(java.io.BufferedReader)
 importClass(java.lang.StringBuilder)
 importClass(android.view.View)
-let currentEngine = engines.myEngine()
-let runningEngines = engines.all()
-let runningSize = runningEngines.length
-let currentSource = currentEngine.getSource() + ''
-if (runningSize > 1) {
-  runningEngines.forEach(compareEngine => {
-    let compareSource = compareEngine.getSource() + ''
-    if (currentEngine.id !== compareEngine.id && compareSource === currentSource) {
-      // 强制关闭同名的脚本
-      compareEngine.forceStop()
-    }
-  })
-}
 
 let { config, storage_name: _storage_name } = require('../config.js')(runtime, global)
 let sRequire = require('../lib/SingletonRequirer.js')(runtime, global)

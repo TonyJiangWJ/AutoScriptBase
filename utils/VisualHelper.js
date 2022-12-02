@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2020-11-20 16:55:08
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2022-11-02 21:38:52
+ * @Last Modified time: 2022-11-13 14:01:31
  * @Description: 
  */
 
@@ -95,7 +95,7 @@ function VisualHelper () {
 
   this.displayAndClearAll = function (timeout) {
     if (!config.enable_visual_helper) {
-      return
+      return this
     }
     timeout = timeout || 1000
     if (this.toDrawList && this.toDrawList.length > 0) {
@@ -103,14 +103,16 @@ function VisualHelper () {
       sleep(timeout)
       this.toDrawList = []
     }
+    return this
   }
 
   this.addRectangle = function (text, rectRegion, color) {
     if (!config.enable_visual_helper) {
-      return
+      return this
     }
     if (!validRegion(rectRegion)) {
-      return
+      errorInfo(['区域信息无效: {}', JSON.stringify(rectRegion)])
+      return this
     }
     ui.run(function () {
       debugInfo(['添加方形区域 {} {}', text, JSON.stringify(rectRegion)])
@@ -130,7 +132,7 @@ function VisualHelper () {
 
   this.addCircle = function (text, circleInfo, color) {
     if (!config.enable_visual_helper) {
-      return
+      return this
     }
     ui.run(function () {
       debugInfo(['添加圆形区域 {} {}', text, JSON.stringify(circleInfo)])
@@ -146,7 +148,7 @@ function VisualHelper () {
 
   this.addText = function (text, position, color) {
     if (!config.enable_visual_helper) {
-      return
+      return this
     }
     ui.run(function () {
       debugInfo(['添加文本区域 {} {}', text, JSON.stringify(position)])
