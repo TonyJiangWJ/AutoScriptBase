@@ -1,6 +1,7 @@
 # 简介
 
 - 本项目是用于快速构建AutoJS自动化脚本项目的模板框架
+- 基于webpack打包编译的版本见: [AutoScriptWB](https://github.com/TonyJiangWJ/AutoScriptWB)
 - 目前已实现的功能如下：
   - 图形化配置，基于Vue开发的可视化界面 `可视化配置`，适合无安卓开发基础的前端人员编写界面
   - 多脚本执行调度，防止多个不同脚本抢占前台 `RunningQueueDispatcher`
