@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2022-10-30 10:08:31
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2022-12-01 13:40:39
+ * @Last Modified time: 2023-01-04 14:06:02
  * @Description: github: https://github.com/TonyJiangWJ/AutoScriptBase
 -->
 <!DOCTYPE html>
@@ -181,6 +181,7 @@
               </v-treeview>
             </v-col>
             <v-col class="right-canvas">
+              <v-checkbox v-model="drawImageCanvas" label="显示图片"></v-checkbox>
               <canvas id="myCanvas" width="400" height="889" style="border:1px solid #000000;">
                 您的浏览器不支持 HTML5 canvas 标签。
               </canvas>
@@ -204,8 +205,6 @@
                 下一个
               </v-btn>
             </v-card-actions>
-          </v-card>
-
           </v-card>
         </v-dialog>
     </v-app>
@@ -394,6 +393,7 @@
           buildingTimeoutId: null,
           totalWidgets: 0,
           imgBase64: typeof imageBase64 != 'undefined' ? imageBase64 || '' : '',
+          drawImageCanvas: false,
         }
       },
       computed: {
@@ -401,7 +401,7 @@
           console.log('filter changed')
           return (rootNode, childArray) => {
             if (this.visibleOnly) {
-              if (!rootNode.visible) {
+              if (!rootNode.visible && !hasVisiableChild(childArray)) {
                 return false
               }
             }
@@ -619,7 +619,7 @@
             this.$el.canvas.height = canvasWidth / deviceWidth * deviceHeight
             let scale = canvasWidth / deviceWidth
             let _this = this
-            if (_this.$el.drawImg && _this.$el.drawImg.src) {
+            if (_this.$el.drawImg && _this.$el.drawImg.src && _this.drawImageCanvas) {
               _this.$el.ctx.drawImage(_this.$el.drawImg, 0, 0, _this.$el.canvas.width, _this.$el.canvas.height)
             }
             this.$el.ctx.scale(scale, scale)
@@ -759,7 +759,7 @@
           console.log('计算canvas width:', canvasWidth)
           _this.$el.canvas.width = canvasWidth
           _this.$el.canvas.height = canvasWidth / deviceWidth * deviceHeight
-          if (_this.$el.drawImg && _this.$el.drawImg.src) {
+          if (_this.$el.drawImg && _this.$el.drawImg.src && _this.drawImageCanvas) {
             _this.$el.ctx.drawImage(_this.$el.drawImg, 0, 0, _this.$el.canvas.width, _this.$el.canvas.height)
           }
         }
@@ -776,7 +776,9 @@
           console.log('绑定img load')
           _this.$el.drawImg.onload = function () {
             console.log('image load:', _this.$el.drawImg.width, ',', _this.$el.drawImg.height)
-            _this.$el.ctx.drawImage(_this.$el.drawImg, 0, 0, _this.$el.canvas.width, _this.$el.canvas.height)
+            if (_this.drawImageCanvas) {
+              _this.$el.ctx.drawImage(_this.$el.drawImg, 0, 0, _this.$el.canvas.width, _this.$el.canvas.height)
+            }
           }
           setTimeout(() => {
             console.log('对img赋值', _this.imgBase64)
@@ -797,6 +799,21 @@
       }
       for (let i = 1; i < childArray.length; i++) {
         if (hasValidChild(childArray[i], func)) {
+          return true
+        }
+      }
+      return false
+    }
+
+    function hasVisiableChild(childArray) {
+      if (!childArray || childArray.length < 1) {
+        return false
+      }
+      if (childArray[0].visible) {
+        return true
+      }
+      for (let i = 1; i < childArray.length; i++) {
+        if (hasVisiableChild(childArray[i])) {
           return true
         }
       }

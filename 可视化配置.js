@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2020-11-29 11:28:15
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-12-30 20:00:45
+ * @Last Modified time: 2023-04-23 11:27:45
  * @Description: 
  */
 "ui";
@@ -28,7 +28,7 @@ if (config.device_width < 10 || config.device_height < 10) {
   toastLog('设备分辨率信息不正确，可能无法正常运行脚本, 请先运行一遍main.js以便自动获取分辨率')
   exit()
 }
-
+console.log('当前设备分辨率：' + config.device_width + ',' + config.device_height)
 ui.layout(
   <vertical>
     <webview id="loadingWebview" margin="0 0" h="*" w="*" />
@@ -43,8 +43,10 @@ let errorFilePath = "file://" + mainScriptPath + "/vue_configs/error.html"
 let postMessageToWebView = () => { console.error('function not ready') }
 
 ui.webview.setVisibility(View.GONE)
+let clearLocalStorage = false
 if (config.clear_webview_cache) {
   ui.webview.clearCache(true)
+  clearLocalStorage = true
   config.overwrite('clear_webview_cache', false)
 }
 prepareWebView(ui.loadingWebview, {
@@ -94,6 +96,7 @@ postMessageToWebView = prepareWebView(ui.webview, {
       activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
       log('切换webview')
       ui.webview.loadUrl('javascript:window.vConsole && window.vConsole.destroy()')
+      clearLocalStorage && ui.webview.loadUrl('javascript:localStorage.clear()')
       loadSuccess = true
       setTimeout(function () {
         console.log('loadingWebview height:', ui.loadingWebview.getHeight())
