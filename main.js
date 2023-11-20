@@ -1,7 +1,7 @@
 /*
  * @Author: TonyJiangWJ
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2022-07-14 09:15:30
+ * @Last Modified time: 2023-08-09 14:53:00
  * @Description: 
  */
 require('./modules/init_if_needed.js')(runtime, this)
@@ -85,6 +85,7 @@ try {
     exit()
   }
 }
+commonFunctions.forceCheckForcegroundPermission()
 logInfo('解锁成功')
 
 // 请求截图权限

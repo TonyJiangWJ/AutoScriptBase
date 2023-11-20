@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2019-12-09 20:42:08
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2023-06-13 20:49:16
+ * @Last Modified time: 2023-08-22 16:28:50
  * @Description: 
  */
 require('./lib/Runtimes.js')(global)
@@ -36,6 +36,7 @@ let default_config = {
   log_saved_days: 3,
   develop_mode: false,
   develop_saving_mode: false,
+  save_yolo_train_data: false,
   check_device_posture: false,
   check_distance: false,
   posture_threshold_z: 6,
@@ -100,6 +101,12 @@ let default_config = {
   clear_webview_cache: false,
   // 配置界面webview打印日志
   webview_loging: false,
+  // 使用手势杀死APP
+  killAppWithGesture: true,
+  // 启用其他app的无障碍服务
+  other_accessisibility_services: '',
+  // 设置不需要执行resolver
+  noneed_resolve_dex: false,
 }
 // 不同项目需要设置不同的storageName，不然会导致配置信息混乱
 let CONFIG_STORAGE_NAME = 'autoscript_version'

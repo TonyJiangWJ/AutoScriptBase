@@ -2,8 +2,8 @@
  * @Author: TonyJiangWJ
  * @Date: 2020-09-22 21:42:38
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-09-22 21:44:54
- * @Description: 
+ * @Last Modified time: 2023-09-07 17:19:48
+ * @Description: 这其实是AutoJS 4.1的bug，这种类似的bug存在大量内存泄漏，魔改版本已经修复了这个问题 大约能存活一分钟
  */
 new java.lang.Thread(new java.lang.Runnable({
   run: function () {

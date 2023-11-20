@@ -8,6 +8,7 @@ const LockConfig = {
     return {
       configs: {
         password: '',
+        start_alipay_by_url: false,
         is_alipay_locked: true,
         multi_device_login: false,
         alipay_lock_password: '',
@@ -34,7 +35,7 @@ const LockConfig = {
   },
   computed: {
     alipay_support: function () {
-      return typeof this.is_alipay_locked != 'undefined'
+      return typeof this.configs.is_alipay_locked != 'undefined'
     }
   },
   filters: {
@@ -71,6 +72,7 @@ const LockConfig = {
         <template #right-icon><span>毫秒</span></template>
       </number-field>
       <template v-if="alipay_support">
+        <switch-cell title="通过url方式打开森林" v-model="configs.start_alipay_by_url" />
         <tip-block>仅限在支付宝账号管理-登录设置-开启可信设备自动登录后才有效，否则需要密码登录，无法使用此功能自动登录</tip-block>
         <switch-cell title="多设备自动登录" v-model="configs.multi_device_login" />
         <switch-cell title="支付宝是否锁定" v-model="configs.is_alipay_locked" />
@@ -220,6 +222,7 @@ const AdvanceCommonConfig = {
       activeNames: [],
       enabledServices: 'com.taobao.idlefishs.modify.opencv4/org.autojs.autojs.timing.work.AlarmManagerProvider:com.taobao.idlefishs.modify.opencv4/org.autojs.autojs.timing.work.AlarmManagerProvider:com.taobao.idlefishs.modify.opencv4/org.autojs.autojs.timing.work.AlarmManagerProvider',
       configs: {
+        auto_set_bang_offset: false,
         single_script: true,
         auto_restart_when_crashed: true,
         useCustomScrollDown: true,
@@ -275,6 +278,12 @@ const AdvanceCommonConfig = {
     <van-cell-group>
       <tip-block>当需要使用多个脚本时不要勾选（如同时使用我写的蚂蚁庄园脚本），避免抢占前台</tip-block>
       <switch-cell title="是否单脚本运行" v-model="configs.single_script" />
+      <tip-block>刘海屏或者挖孔屏悬浮窗显示位置和实际目测位置不同，需要施加一个偏移量，一般是负值，脚本运行时会自动设置，非异形屏请自行修改为0</tip-block>
+      <switch-cell title="下次执行时重新识别" v-model="configs.auto_set_bang_offset" />
+      <number-field v-if="!configs.auto_set_bang_offset" v-model="configs.bang_offset" label="偏移量" label-width="12em" />
+      <van-cell center title="偏移量" v-else>
+        <span>下次执行时重新识别</span>
+      </van-cell>
       <tip-block>AutoJS有时候会莫名其妙的崩溃，但是授权了自启动权限之后又会自动启动。开启该选项之后会创建一个广播事件的定时任务，
         当脚本执行过程中AutoJS崩溃自启，将重新开始执行脚本。如果脚本执行完毕，则不会触发执行</tip-block>
       <switch-cell title="AutoJS崩溃自启后重启脚本" title-style="flex:2;" v-model="configs.auto_restart_when_crashed" />
