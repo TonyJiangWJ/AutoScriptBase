@@ -1,3 +1,8 @@
+[![GitHub forks](https://img.shields.io/github/forks/TonyJiangWJ/AutoScriptBase?style=flat-square)](https://github.com/TonyJiangWJ/AutoScriptBase/forks)
+[![GitHub stars](https://img.shields.io/github/stars/TonyJiangWJ/AutoScriptBase?style=flat-square)](https://github.com/TonyJiangWJ/AutoScriptBase/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/TonyJiangWJ/AutoScriptBase?style=flat-square)](https://github.com/TonyJiangWJ/AutoScriptBase/issues)
+[![Page Views Count](https://badges.toozhao.com/badges/01HV8RWXME6R30S0AHH5SZV0YE/green.svg)](https://badges.toozhao.com/stats/01HV8RWXME6R30S0AHH5SZV0YE "Get your own page views count badge on badges.toozhao.com")
+
 # 简介
 
 - 本项目是用于快速构建AutoJS自动化脚本项目的模板框架
