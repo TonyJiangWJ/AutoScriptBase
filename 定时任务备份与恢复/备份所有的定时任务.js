@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2020-05-18 13:28:10
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2020-08-27 13:31:59
+ * @Last Modified time: 2025-01-03 14:14:33
  * @Description: 
  */
 let packageName = context.getPackageName() === 'org.autojs.autojsm' ? org.autojs.autojsm : org.autojs.autojs

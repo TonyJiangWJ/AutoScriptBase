@@ -23,6 +23,10 @@
   - 支持自动解锁设备，也支持扩展自定义解锁
   - 支持模拟手势自动锁定屏幕，同时支持扩展自定义锁屏代码
   - 支持支付宝手势解锁
+  - 支持SQLite
+  - 支持本地OCR，`PaddleOCR` `MlKitOCR`
+  - 支持运行YOLO模型 `YoloDetectionUtil`
+  - 支持发送消息通知 `Notification`
   - 支持通过代码添加定时任务 `Timers` 来自作者 [SuperMonster003](https://github.com/SuperMonster003)
   - 支持自动点击授权截图权限 `TryRequestScreenCapture` 来自作者 [SuperMonster003](https://github.com/SuperMonster003)
   - 支持配置信息导入和导出以及配置信息加密

@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2020-04-29 14:44:49
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2023-07-19 22:34:46
+ * @Last Modified time: 2024-11-12 16:49:53
  * @Description: https://github.com/TonyJiangWJ/AutoScriptBase
  */
 let { config } = require('../config.js')(runtime, global)
@@ -13,21 +13,28 @@ let commonFunctions = singletonRequire('CommonFunction')
 let FileUtils = singletonRequire('FileUtils')
 let formatDate = require('../lib/DateUtil.js')
 let workpath = FileUtils.getCurrentWorkPath()
+let processShare = singletonRequire('ProcessShare')
 checkAndLoadDex(workpath + '/lib/autojs-common.dex')
 importClass(com.tony.autojs.search.UiObjectTreeBuilder)
 
 let args = engines.myEngine().execArgv
 console.log('来源参数：' + JSON.stringify(args))
 let inspectConfig = args || {}
-if (typeof inspectConfig.save_data_js == 'undefined') {
-  inspectConfig.save_data_js = true
+
+function checkBooleanValue(value, defaultTrue) {
+  defaultTrue = typeof defaultTrue == 'undefined' ? true : defaultTrue
+  if (typeof value == 'undefined') {
+    return defaultTrue
+  }
+  return value == true
 }
-if (typeof inspectConfig.save_img_js == 'undefined') {
-  inspectConfig.save_img_js = true
-}
-if (typeof inspectConfig.save_history == 'undefined') {
-  inspectConfig.save_history = true
-}
+inspectConfig.save_data_js = checkBooleanValue(inspectConfig.save_data_js)
+inspectConfig.save_img_js = checkBooleanValue(inspectConfig.save_img_js)
+inspectConfig.save_history = checkBooleanValue(inspectConfig.save_history)
+inspectConfig.show_floaty = checkBooleanValue(inspectConfig.show_floaty)
+inspectConfig.capture = checkBooleanValue(inspectConfig.capture)
+inspectConfig.immediate = checkBooleanValue(inspectConfig.immediate)
+
 commonFunctions.registerOnEngineRemoved(function () {
   logUtils.showCostingInfo()
 }, 'logging cost')
@@ -47,13 +54,13 @@ if (inspectConfig.capture && !automator.takeScreenshot) {
 }
 // 清空所有日志
 logUtils.clearLogFile()
-if (!floatyInstance.init()) {
+if (inspectConfig.show_floaty && !floatyInstance.init()) {
   toast('创建悬浮窗失败')
   exit()
 }
 
 // 适配老代码
-if (!floatyInstance.hasOwnProperty('setFloatyInfo')) {
+if (inspectConfig.show_floaty && !floatyInstance.hasOwnProperty('setFloatyInfo')) {
   floatyInstance.setFloatyText = function (text) {
     this.setFloatyInfo(null, text, null)
   }
@@ -63,18 +70,25 @@ if (!floatyInstance.hasOwnProperty('setFloatyInfo')) {
   }
 }
 
-
-floatyInstance.setFloatyInfo({ x: parseInt(config.device_width / 2.7), y: parseInt(config.device_height / 2) }, '即将开始分析', { textSize: 20 })
+if (inspectConfig.show_floaty) {
+  floatyInstance.setFloatyInfo({ x: parseInt(config.device_width / 2.7), y: parseInt(config.device_height / 2) }, '即将开始分析', { textSize: 20 })  
+} else {
+  toastLog('即将开始分析')
+}
 sleep(1000)
 let limit = 3
 while (limit > 0 && !inspectConfig.immediate) {
-  floatyInstance.setFloatyText('倒计时' + limit-- + '秒')
+  if (inspectConfig.show_floaty) {
+    floatyInstance.setFloatyText('倒计时' + limit-- + '秒')
+  } else {
+    toastLog('倒计时' + limit-- + '秒')
+  }
   sleep(1000)
 }
 
 let imgBase64 = null
 if (inspectConfig.capture) {
-  floatyInstance.setFloatyText(' ')
+  inspectConfig.show_floaty && floatyInstance.setFloatyText(' ')
   sleep(50)
   let screen = null
   if (automator.takeScreenshot) {
@@ -84,7 +98,11 @@ if (inspectConfig.capture) {
   }
   imgBase64 = images.toBase64(screen)
 }
-floatyInstance.setFloatyText('正在分析中...')
+if (inspectConfig.show_floaty) {
+  floatyInstance.setFloatyText('正在分析中...')
+} else {
+  toastLog('正在分析中...')
+}
 let windowRootsList = getWindowRoots()
 // 最大深度
 let maxDepth = -1
@@ -136,7 +154,7 @@ if (root) {
     if (inspectConfig.save_data_js) {
       files.write(workpath + '/logs/data.js', 'let objects = ' + content)
     }
-    let hisPath = workpath + '/logs/hisUiObjects/' + formatDate(new Date(), 'yyyyMMdd/')
+    let hisPath = workpath + '/logs/hisUiObjects/' + prefixWithPath(inspectConfig.record_path) + formatDate(new Date(), 'yyyyMMdd/')
     let time = formatDate(new Date(), 'HHmmss')
     if (inspectConfig.save_history) {
       console.log('ensureDir?' + files.ensureDir(hisPath))
@@ -169,15 +187,22 @@ if (root) {
   })
   rootSummary += '\n控件最大深度：' + maxDepth
   uiObjectInfoList = flatMap(flatArrayList, resultList)
-
-  floatyInstance.setPosition(parseInt(config.device_width / 5), parseInt(config.device_height / 2))
-  floatyInstance.setFloatyText('分析完成，请查看日志页面')
+  if (inspectConfig.show_floaty) {
+    floatyInstance.setPosition(parseInt(config.device_width / 5), parseInt(config.device_height / 2))
+    floatyInstance.setFloatyText('分析完成，请查看日志页面')
+  } else {
+    toastLog('分析完成，请查看日志页面')
+  }
 } else {
-  floatyInstance.setPosition(parseInt(config.device_width / 5), parseInt(config.device_height / 2))
-  floatyInstance.setFloatyText('无法获取任何控件信息')
+  if (inspectConfig.show_floaty) {
+    floatyInstance.setPosition(parseInt(config.device_width / 5), parseInt(config.device_height / 2))
+    floatyInstance.setFloatyText('无法获取任何控件信息')
+  } else {
+    toastLog('无法获取任何控件信息')
+  }
 }
 sleep(1000)
-floatyInstance.close()
+inspectConfig.show_floaty && floatyInstance.close()
 if (uiObjectInfoList) {
   let timeCost = new Date().getTime() - start
   let total = uiObjectInfoList.length
@@ -187,6 +212,10 @@ if (uiObjectInfoList) {
   let content = rootSummary + '\n' + logInfoList.join('\n')
   logUtils.infoLog('\n' + content)
   logUtils.logInfo('布局层次结果已经保存到logs/info.log')
+  if (inspectConfig.no_dialog) {
+    processShare.postInfo('done')
+    exit()
+  }
   dialogs.build({
     title: '布局分析结果',
     content: commonFunctions.formatString("总分析耗时：{}ms 总控件数：{}\n{}", timeCost, total, content),
@@ -214,7 +243,7 @@ function iterateAll (root, depth, index) {
   let uiObjectInfo = new UiObjectInfo(root.root, depth, index)
   logUtils.logInfo(uiObjectInfo.toString())
   if (root.getChildList().size() > 0) {
-    return [uiObjectInfo].concat(runtime.bridges.bridges.toArray(root.getChildList()).map((child, index) => iterateAll(child, depth + 1, index)))
+    return [uiObjectInfo].concat(util.java.toJsArray(root.getChildList()).map((child, index) => iterateAll(child, depth + 1, index)))
   } else {
     return [uiObjectInfo]
   }
@@ -423,4 +452,14 @@ function getWindowRoots () {
     }
   }
   return windowInfoList
+}
+
+function prefixWithPath(path) {
+  if (!path) {
+    return ''
+  }
+  if (path.endsWith('/')) {
+    return path
+  }
+  return path + '/'
 }

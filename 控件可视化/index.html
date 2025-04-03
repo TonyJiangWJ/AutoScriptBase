@@ -2,7 +2,7 @@
  * @Author: TonyJiangWJ
  * @Date: 2022-10-30 10:08:31
  * @Last Modified by: TonyJiangWJ
- * @Last Modified time: 2023-01-04 14:06:02
+ * @Last Modified time: 2024-03-31 16:10:55
  * @Description: github: https://github.com/TonyJiangWJ/AutoScriptBase
 -->
 <!DOCTYPE html>
@@ -126,7 +126,7 @@
           </v-row>
           <v-row>
             <v-col>
-              <v-textarea v-model="imgBase64" label="图片base64" :rows="2" row-height="15">
+              <v-textarea v-model="imgBase64" label="图片base64" :rows="5" row-height="15">
               </v-textarea>
             </v-col>
           </v-row>
@@ -269,6 +269,10 @@
           }
         }
       })
+      // 用于过滤bounds信息
+      rootNode.bounds = function () {
+        return new BoundsInfo(rootNode.boundsInfo)
+      }
       if (typeof filter != "undefined" && !filter(rootNode, childArray)) {
         console.log('过滤无效节点')
         return null
@@ -1056,6 +1060,17 @@
         }
         return true
       }
+    }
+
+    function BoundsInfo(boundsInfo) {
+      this.left = boundsInfo.left
+      this.top = boundsInfo.top
+      this.right = boundsInfo.right
+      this.bottom = boundsInfo.bottom
+      this.width = () =>boundsInfo.right - boundsInfo.left
+      this.height = () => boundsInfo.bottom - boundsInfo.top
+      this.centerX = () => (boundsInfo.right + boundsInfo.left) / 2
+      this.centerY = () => (boundsInfo.bottom + boundsInfo.top) / 2
     }
   </script>
 
